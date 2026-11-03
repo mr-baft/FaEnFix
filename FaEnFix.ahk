@@ -341,8 +341,9 @@ FixMixed(text, m, force, &fixed, &endsFa) {
                 nEn++
         }
         sc := (nFa && !nEn) ? "fa" : (nEn && !nFa) ? "en" : ""
-        ; علامتی که روی کیبورد فارسی حرف است (مثل «,» = «و») تابع کلمه‌های کناری‌اش می‌شود
-        weak := (sc = "" && !nFa && !nEn && IsFaKeysOnly(mt[0], m))
+        ; علامتی که روی یکی از دو کیبورد حرف است (مثل «,» = «و»، یا «]» = Shift+I در فارسی قدیمی)
+        ; تابع کلمه‌های کناری‌اش می‌شود
+        weak := (sc = "" && !nFa && !nEn && (IsFaKeysOnly(mt[0], m) || IsEnKeysOnly(mt[0], m)))
         if weak
             sc := "en"
         ; «به فارسی» فقط کلمه‌های انگلیسی‌نما را عوض می‌کند و برعکس
@@ -364,13 +365,27 @@ FixMixed(text, m, force, &fixed, &endsFa) {
                 t.c := cur
         }
     }
-    ; «,» تنها که هنوز معلوم نیست: در متنی که فارسی دارد «و» است، در متن انگلیسی ویرگول
+    ; علامت تنها: اگر کلمه‌ی کناری‌اش (بعد از اصلاح) انگلیسی است و این علامت روی کیبورد فارسی
+    ; یک حرف انگلیسی است، همان حرف («]» → «I»)؛ وگرنه در متنی که فارسی دارد، حرف فارسی («,» → «و»)
+    finalFa(t) => (t.sc = "fa" && t.c != 1) || (t.sc = "en" && t.c = 1)
     hasFa := false
     for t in toks
-        hasFa := hasFa || (!t.weak && ((t.sc = "fa" && t.c != 1) || (t.sc = "en" && t.c = 1)))
-    for t in toks
-        if (t.weak && !t.c)
-            t.c := hasFa ? 1 : -1
+        hasFa := hasFa || (!t.weak && t.sc != "" && finalFa(t))
+    for i, t in toks {
+        if !(t.weak && !t.c)
+            continue
+        nb := ""
+        for j in [i - 1, i + 1]
+            if (nb = "" && j >= 1 && j <= toks.Length && !toks[j].weak && toks[j].sc != "")
+                nb := finalFa(toks[j]) ? "fa" : "en"
+        w := SubStr(text, t.s, t.len)
+        if (nb = "en" && IsEnKeysOnly(w, m))
+            t.sc := "fa", t.c := 1             ; با کیبورد فارسی تایپ شده، به انگلیسی برگردد
+        else if ((nb = "fa" || hasFa) && IsFaKeysOnly(w, m))
+            t.c := 1
+        else
+            t.c := -1
+    }
     out := "", pos := 1, fixed := 0, endsFa := false, prevMi := false
     for t in toks {
         w := SubStr(text, t.s, t.len), gap := SubStr(text, pos, t.s - pos)
@@ -423,6 +438,14 @@ TrimKeepFaKeys(s, m) {
     while (b >= a && !keep(SubStr(s, b, 1)))
         b--
     return SubStr(s, a, b - a + 1)
+}
+
+; همه‌ی نویسه‌ها چیزی‌اند که کیبورد فارسی جای یک حرف انگلیسی می‌دهد (مثل «]» = Shift+I در فارسی قدیمی)
+IsEnKeysOnly(s, m) {
+    Loop Parse s
+        if !(m.toEn.Has(A_LoopField) && IsEnChar(m.toEn[A_LoopField]))
+            return false
+    return true
 }
 
 ; همه‌ی نویسه‌ها کلیدهایی‌اند که روی کیبورد فارسی حرف می‌دهند
