@@ -1,167 +1,134 @@
-<div dir="rtl">
+<div align="center">
 
-<img src="docs/icon.png" width="72" align="left">
+<img src="docs/icon.png" width="96" alt="FaEnFix">
 
 # FaEnFix
 
-**یادت رفت کیبورد را عوض کنی؟ فقط یک شورتکات بزن.**
+**اصلاح متنی که با زبان اشتباه کیبورد تایپ شده، با یک کلید**
 
-اگر به جای «سلام» نوشتی `sghl` یا به جای `hello` نوشتی «اثممخ»، FaEnFix متن را در هر برنامه‌ای درست می‌کند: تلگرام، ورد، مرورگر، VS Code و بقیه. بعد از اصلاح، زبان کیبورد هم خودش عوض می‌شود تا بقیه‌ی متن را درست تایپ کنی.
+[![Release](https://img.shields.io/github/v/release/mr-baft/FaEnFix?style=flat-square&color=881337)](../../releases/latest)
+[![Downloads](https://img.shields.io/github/downloads/mr-baft/FaEnFix/total?style=flat-square&color=881337)](../../releases)
+[![Windows](https://img.shields.io/badge/Windows-10%20%7C%2011-881337?style=flat-square)](#)
+[![License](https://img.shields.io/badge/license-MIT-881337?style=flat-square)](LICENSE)
 
-| نوشتی | بعد از شورتکات |
+[فارسی](#) · [English](#english)
+
+</div>
+
+<div dir="rtl">
+
+## FaEnFix چیست؟
+
+ابزاری رایگان و متن‌باز برای ویندوز که متن تایپ‌شده با زبان اشتباه کیبورد را، در هر برنامه‌ای، به فارسی یا انگلیسی درست تبدیل می‌کند.
+
+<div align="center">
+
+| تایپ‌شده | نتیجه |
 |---|---|
-| `sghl ofvd` | سلام خبری |
-| `hello sghl` | hello سلام |
-| سلام `lk ldo,hl` | سلام من میخوام |
-| اثممخ صخقمی | `hello world` |
+| `tvnh shuj ni [gsi nhvdl` | فردا ساعت ده جلسه داریم |
+| حمثشسث سثدی پث فاث بهدشم قثحخقف | `please send me the final report` |
+| `gxth thdg` حقثسثدفشفهخد را تا `tvnh` برای team بفرستید | لطفا فایل presentation را تا فردا برای team بفرستید |
 
-<p align="center"><img src="docs/welcome.png" width="440"></p>
+<img src="docs/welcome.png" width="440" alt="FaEnFix">
 
----
+</div>
 
-## نصب (۳۰ ثانیه)
+## ✨ امکانات
 
-<p align="center"><a href="../../releases/latest/download/FaEnFix-Setup.exe"><b>⬇️ دانلود FaEnFix-Setup.exe</b></a></p>
+- کار در همه‌ی برنامه‌ها: تلگرام، Word، مرورگر، VS Code و ترمینال
+- اصلاح فقط کلمه‌های اشتباه، حتی در متن‌های طولانی و دوزبانه
+- پشتیبانی از فارسی محاوره‌ای و نیم‌فاصله
+- سازگار با کیبوردهای «فارسی» و «فارسی استاندارد»
+- تغییر خودکار زبان کیبورد پس از اصلاح
+- آفلاین، بدون نیاز به دسترسی ادمین، اجرا در پس‌زمینه
 
-1. فایل `FaEnFix-Setup.exe` را دانلود و اجرا کن، و **Install** را بزن.
-2. همین! برنامه همان لحظه اجرا می‌شود و (اگر تیک «Start FaEnFix automatically» را برنداری) از این به بعد با روشن شدن ویندوز، بی‌صدا در پس‌زمینه بالا می‌آید.
+## 📥 دانلود
 
-FaEnFix هیچ اطلاعاتی به اینترنت نمی‌فرستد ([Privacy policy](#privacy-policy)).
+<div align="center">
 
-- دسترسی ادمین لازم نیست و نیازی به نصب AutoHotkey یا هیچ چیز دیگری نیست.
-- آیکونش کنار ساعت ویندوز است (اگر نمی‌بینی، روی فلش `^` کنار ساعت بزن).
-- **نسخه‌ی قابل‌حمل:** اگر نصب نمی‌خواهی، از [Releases](../../releases/latest) فایل `FaEnFix.exe` را بگیر و جایی ثابت بگذار. با اولین اجرا خودش را به اجرای خودکار ویندوز اضافه می‌کند.
+[![Setup](https://img.shields.io/badge/دانلود-FaEnFix--Setup.exe-881337?style=for-the-badge&logo=windows&logoColor=white)](../../releases/latest/download/FaEnFix-Setup.exe)
+&nbsp;
+[![Portable](https://img.shields.io/badge/نسخه‌ی_قابل‌حمل-FaEnFix.exe-75686C?style=for-the-badge&logo=windows&logoColor=white)](../../releases/latest/download/FaEnFix.exe)
 
-> **هشدار ویندوز:** تا وقتی امضای دیجیتال ([Code signing policy](#code-signing-policy)) فعال نشده، ممکن است SmartScreen بگوید «Windows protected your PC». روی **More info** و بعد **Run anyway** بزن. بعضی آنتی‌ویروس‌ها هم برنامه‌های AutoHotkey را اشتباهی مشکوک می‌دانند. اگر نگرانی، کد کامل در همین مخزن است و می‌توانی [خودت بسازی‌اش](#اجرا-از-روی-کد).
+</div>
 
----
+> [!NOTE]
+> اگر ویندوز پیام «Windows protected your PC» نمایش داد، روی **More info** و سپس **Run anyway** کلیک کنید.
 
-## شورتکات‌ها
+## ⌨️ کلیدهای میانبر
 
-| شورتکات | کار |
+| کلید | عملکرد |
 |---|---|
-| <kbd>Shift</kbd>+<kbd>Alt</kbd>+<kbd>Space</kbd> یا <kbd>Pause</kbd> | تبدیل خودکار: خودش جهت را تشخیص می‌دهد (مثل عوض کردن زبان ویندوز، فقط با Space) |
-| <kbd>Shift</kbd>+<kbd>Alt</kbd>+<kbd>F</kbd> | حتماً به **فارسی** |
-| <kbd>Shift</kbd>+<kbd>Alt</kbd>+<kbd>E</kbd> | حتماً به **انگلیسی** |
-| همان شورتکات خودکار، دوباره | برگرداندن آخرین تغییر |
+| <kbd>Shift</kbd>+<kbd>Alt</kbd>+<kbd>Space</kbd> یا <kbd>Pause</kbd> | تبدیل خودکار |
+| <kbd>Shift</kbd>+<kbd>Alt</kbd>+<kbd>F</kbd> | تبدیل به فارسی |
+| <kbd>Shift</kbd>+<kbd>Alt</kbd>+<kbd>E</kbd> | تبدیل به انگلیسی |
 
-همه را می‌توانی در تنظیمات عوض کنی.
+- برای اصلاح کل متن، ابتدا <kbd>Ctrl</kbd>+<kbd>A</kbd> را بزنید.
+- فشردن دوباره‌ی کلید، آخرین تبدیل را لغو می‌کند.
 
-## چطور کار می‌کند؟
+## ⚙️ تنظیمات
 
-**کدام متن تبدیل می‌شود؟**
-- اگر متنی را **انتخاب** کرده باشی (مثلاً کل متن با <kbd>Ctrl</kbd>+<kbd>A</kbd>)، تک‌تک کلمه‌هایش بررسی می‌شوند و **هر کلمه‌ی اشتباه، هر جای متن**، درست می‌شود. یعنی اگر وسط یک پاراگراف بلند چند کلمه یا چند جمله را اشتباهی تایپ کرده‌ای، یا کل یک متن دوزبانه را برعکس نوشته‌ای، با یک شورتکات همه درست می‌شوند و بقیه‌ی متن دست نمی‌خورد.
-- اگر چیزی انتخاب نکرده باشی، از مکان‌نما به عقب می‌رود تا جایی که خط (فارسی/انگلیسی) عوض شده. پس در «سلام `khl ofvd`»، کلمه‌ی «سلام» دست نمی‌خورد.
-- با **فرهنگ لغت** (حدود ۴۷ هزار کلمه‌ی انگلیسی و ۳۷ هزار کلمه‌ی فارسی) هر کلمه جداگانه بررسی می‌شود: آیا خودش کلمه‌ی معناداری است، یا نسخه‌ی تبدیل‌شده‌اش؟ برای همین در `hello sghl` فقط `sghl` تبدیل می‌شود. کلمه‌ای که در هیچ‌کدام از دو فرهنگ نیست (مثل اسم‌ها) تابع کلمه‌ی کناری‌اش می‌شود.
-- **محاوره‌ای هم بلد است.** فرهنگ لغت فارسی از زیرنویس فیلم‌ها ساخته شده، پس «میخوام»، «اینو»، «چیکار»، «نمیام» و امثالشان را می‌شناسد. نیم‌فاصله‌ی «می‌» و «نمی‌» هم خودش برمی‌گردد.
+با دوبار کلیک روی آیکون FaEnFix در کنار ساعت ویندوز.
 
-**کیبورد تو را می‌شناسد.** جدول تبدیل ثابت نیست؛ مستقیم از کیبوردهای نصب‌شده روی ویندوز خوانده می‌شود. پس «فارسی» قدیمی ویندوز، «فارسی استاندارد» (ISIRI 9147) و هر چیدمان انگلیسی درست کار می‌کنند.
+<div align="center"><img src="docs/settings.png" width="470" alt="تنظیمات"></div>
 
-**کلیپ‌بوردت امن است.** برنامه برای خواندن متن از کپی/پیست استفاده می‌کند، ولی بعد از کار، محتوای قبلی کلیپ‌بورد را برمی‌گرداند.
+<details>
+<summary><b>نکته‌ها</b></summary>
 
-## تنظیمات
+<br>
 
-روی آیکون FaEnFix کنار ساعت دوبار کلیک کن (یا راست‌کلیک ← **تنظیمات…**).
+- در VS Code، کلید <kbd>Shift</kbd>+<kbd>Alt</kbd>+<kbd>F</kbd> برای «Format Document» استفاده می‌شود و می‌توان آن را در تنظیمات تغییر داد.
+- برای کار در برنامه‌هایی که با دسترسی ادمین اجرا شده‌اند، گزینه‌ی مربوط را در تنظیمات فعال کنید.
+- کلمه‌ای که در فرهنگ لغت نیست، مانند برخی نام‌ها، از کلمه‌ی مجاورش پیروی می‌کند. در صورت تبدیل نادرست، فقط همان بخش را انتخاب و تبدیل کنید.
 
-<img src="docs/settings.png" width="470">
+</details>
 
-- **شورتکات‌ها:** روی «تغییر» بزن و ترکیب کلید دلخواهت را فشار بده. <kbd>Backspace</kbd> شورتکات را خالی (غیرفعال) می‌کند و <kbd>Esc</kbd> لغو می‌کند.
-- **عوض کردن زبان کیبورد بعد از اصلاح**
-- **فرهنگ لغت:** اگر خاموش باشد، کل متن از ابتدای خط تا مکان‌نما تبدیل می‌شود.
-- **پیام کوچک بعد از هر تبدیل**
-- **اجرا با روشن شدن ویندوز**
-- **کار در برنامه‌هایی که با Run as administrator باز شده‌اند:** یک بار تأیید ویندوز می‌خواهد و بعد از آن FaEnFix با دسترسی بالا بالا می‌آید.
-- **برنامه‌های مستثنا:** نام فایل exe برنامه‌هایی که FaEnFix نباید در آن‌ها کار کند (اسمش را در Task Manager ← Details می‌بینی).
+<details>
+<summary><b>توسعه</b></summary>
 
-دکمه‌ی **تنظیمات اولیه** همه‌چیز را به حالت اول برمی‌گرداند. تنظیمات در `%AppData%\FaEnFix\settings.ini` ذخیره می‌شوند و دستی هم قابل ویرایش‌اند:
+<br>
 
-```ini
-[hotkeys]
-auto=+!vk20        ; Shift+Alt+Space   (^ = Ctrl, + = Shift, ! = Alt, # = Win)
-auto2=vk13         ; Pause
-to_fa=+!vk46       ; Shift+Alt+F
-to_en=+!vk45       ; Shift+Alt+E
-[options]
-switch_layout=1
-use_dictionary=1
-notify=1
-[apps]
-exclude=WindowsTerminal.exe,cmd.exe,powershell.exe
-```
-
-## محدودیت‌ها و نکته‌ها
-
-- **ترمینال‌ها:** در cmd، PowerShell، Windows Terminal و مشابه‌ها غیرفعال است، چون آن‌جا <kbd>Ctrl</kbd>+<kbd>C</kbd> برنامه‌ی در حال اجرا را متوقف می‌کند. در VS Code و ویرایشگرهای مشابه، FaEnFix به جای <kbd>Ctrl</kbd>+<kbd>C</kbd> از <kbd>Ctrl</kbd>+<kbd>Insert</kbd> استفاده می‌کند، پس ترمینال داخل آن‌ها هم امن است.
-- **VS Code:** <kbd>Shift</kbd>+<kbd>Alt</kbd>+<kbd>F</kbd> در VS Code یعنی «Format Document». اگر به آن نیاز داری، در تنظیمات شورتکات «تبدیل به فارسی» را عوض کن.
-- **برنامه‌هایی که با Run as administrator باز شده‌اند:** ویندوز اجازه نمی‌دهد برنامه‌ی معمولی به آن‌ها کلید بفرستد. گزینه‌اش را در تنظیمات روشن کن.
-- کلمه‌ای که در هیچ فرهنگ لغتی نیست (مثلاً اسم خاص با حروف کوچک) ممکن است همراه کلمه‌ی کناری‌اش تبدیل شود. اگر شد، همان شورتکات را دوباره بزن تا برگردد، بعد فقط بخش اشتباه را انتخاب کن.
-- فقط حروف و علامت‌های اصلی کیبورد تبدیل می‌شوند، نه حروفی که با <kbd>AltGr</kbd> تایپ می‌شوند.
-
-## حذف
-
-از **Settings ← Apps** ویندوز، FaEnFix را Uninstall کن. برنامه، اجرای خودکار و تنظیماتش کامل پاک می‌شوند.
-
-نسخه‌ی قابل‌حمل: راست‌کلیک روی آیکون کنار ساعت، تیک «اجرا با روشن شدن ویندوز» را بردار و **خروج** را بزن. بعد فایل `FaEnFix.exe` و پوشه‌ی `%AppData%\FaEnFix` را پاک کن.
-
----
-
-## اجرا از روی کد
-
-1. [AutoHotkey v2](https://www.autohotkey.com) را نصب کن (یا `winget install AutoHotkey.AutoHotkey`).
-2. مخزن را دانلود کن و روی `FaEnFix.ahk` دوبار کلیک کن. فرهنگ لغت‌ها در پوشه‌ی `dict` هستند.
-
-ساخت exe روی سیستم خودت (نیاز به [Ahk2Exe](https://github.com/AutoHotkey/Ahk2Exe/releases) دارد):
+نیازمند [AutoHotkey v2](https://www.autohotkey.com):
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File tools\build.ps1
+AutoHotkey64.exe FaEnFix.ahk                                    # اجرا
+powershell -ExecutionPolicy Bypass -File tools\build.ps1        # ساخت exe
+AutoHotkey64.exe /ErrorStdOut tests\unit.ahk                    # تست
 ```
 
-تست‌ها: `tests\unit.ahk` (منطق تبدیل، بیش از ۳۰ حالت) و `tests\e2e-notepad.ahk` (کلیدزدن واقعی در Notepad).
+با هر تگ `v*`، نسخه‌ی جدید توسط GitHub Actions ساخته و منتشر می‌شود.
 
-ساخت دوباره‌ی فرهنگ لغت‌ها: `tools\build-dict.ps1` — آیکون: `python tools\make-icon.py`
+</details>
 
-### انتشار نسخه‌ی جدید
+## 📄 مجوز
 
-با هر تگ `v*`، GitHub Actions خودش نصب‌کننده (`FaEnFix-Setup.exe`، با [Inno Setup](https://jrsoftware.org/isinfo.php)) و نسخه‌ی قابل‌حمل (`FaEnFix.exe`) را می‌سازد و در Releases می‌گذارد:
-
-```bash
-git tag v1.1.0
-git push origin v1.1.0
-```
-
-## مجوز
-
-کد تحت مجوز [MIT](LICENSE) است. فرهنگ لغت‌ها از [FrequencyWords](https://github.com/hermitdave/FrequencyWords) (بر پایه‌ی OpenSubtitles) گرفته شده‌اند و مجوز [CC-BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) دارند. فونت برنامه [وزیرمتن](https://github.com/rastikerdar/vazirmatn) است، با مجوز [OFL](fonts/OFL.txt).
+[MIT](LICENSE) · فرهنگ لغت‌ها: [FrequencyWords](https://github.com/hermitdave/FrequencyWords) (CC-BY-SA 4.0) · فونت: [وزیرمتن](https://github.com/rastikerdar/vazirmatn) (OFL)
 
 </div>
 
 ---
 
-### English
+## English
 
-**FaEnFix** fixes text typed with the wrong keyboard layout (Persian ⇄ English) in any Windows app. Download [**FaEnFix-Setup.exe**](../../releases/latest/download/FaEnFix-Setup.exe) and click Install — no admin rights needed. It starts right away and then runs silently in the background at every Windows startup. A portable `FaEnFix.exe` is also in [Releases](../../releases/latest).
+**FaEnFix** is a free, open-source Windows tool that fixes text typed with the wrong keyboard layout (Persian ⇄ English) in any application.
 
-- <kbd>Shift</kbd>+<kbd>Alt</kbd>+<kbd>Space</kbd> / <kbd>Pause</kbd>: auto-detect direction (press again to undo) · <kbd>Shift</kbd>+<kbd>Alt</kbd>+<kbd>F</kbd>: to Persian · <kbd>Shift</kbd>+<kbd>Alt</kbd>+<kbd>E</kbd>: to English
-- Select any text (even Ctrl+A) and every mistyped word anywhere in it is fixed, including fully swapped bilingual text and colloquial Persian. With no selection it works from the caret back to where the script changes. Built-in dictionaries decide word by word, so `hello sghl` becomes `hello سلام`.
-- Reads the mapping from your installed layouts (Persian, Persian Standard, any English layout); restores your clipboard; switches the layout afterwards.
-- Everything is configurable from the tray icon → Settings (saved in `%AppData%\FaEnFix\settings.ini`).
-- Starting with Windows is a checkbox in the installer (on by default) and can be turned off from the tray menu or Settings.
+- <kbd>Shift</kbd>+<kbd>Alt</kbd>+<kbd>Space</kbd> or <kbd>Pause</kbd>: convert (auto-detect) · <kbd>Shift</kbd>+<kbd>Alt</kbd>+<kbd>F</kbd>: to Persian · <kbd>Shift</kbd>+<kbd>Alt</kbd>+<kbd>E</kbd>: to English
+- Fixes only the mistyped words, even in long bilingual text; supports colloquial Persian
+- Offline, no admin rights required, runs in the background
 
----
+**Download:** [FaEnFix-Setup.exe](../../releases/latest/download/FaEnFix-Setup.exe) · [portable FaEnFix.exe](../../releases/latest/download/FaEnFix.exe)
 
-## Code signing policy
+### Code signing policy
 
 Free code signing provided by [SignPath.io](https://about.signpath.io), certificate by [SignPath Foundation](https://signpath.org).
 
 - **Committers and reviewers:** [mr-baft](https://github.com/mr-baft)
 - **Approvers:** [mr-baft](https://github.com/mr-baft)
 
-Every release is built from this repository's source by [GitHub Actions](.github/workflows/release.yml) and each signing request is approved manually. Only `FaEnFix.exe` and `FaEnFix-Setup.exe` built here are signed.
+Every release is built from this repository's source by [GitHub Actions](.github/workflows/release.yml) and each signing request is approved manually.
 
-## Privacy policy
+### Privacy policy
 
-This program will not transfer any information to other networked systems unless specifically requested by the user or the person installing or operating it.
+This program will not transfer any information to other networked systems unless specifically requested by the user or the person installing or operating it. It reads the selected text only when its shortcut is pressed, restores the clipboard afterwards, and stores settings in `%AppData%\FaEnFix`.
 
-FaEnFix works entirely on your computer: it reads the text you select (through the clipboard, which it restores afterwards) only when you press its shortcut, and stores its settings in `%AppData%\FaEnFix`. The only network action is opening this GitHub page in your browser when you click "GitHub page" or "Help".
-
-Bundled third-party components: the [AutoHotkey](https://www.autohotkey.com) v2 runtime (GPL-2.0), the [Vazirmatn](https://github.com/rastikerdar/vazirmatn) font (OFL-1.1), word lists from [FrequencyWords](https://github.com/hermitdave/FrequencyWords) (CC-BY-SA 4.0), and the installer is built with [Inno Setup](https://jrsoftware.org/isinfo.php). None of them send data anywhere.
+Bundled components: [AutoHotkey](https://www.autohotkey.com) v2 runtime (GPL-2.0), [Vazirmatn](https://github.com/rastikerdar/vazirmatn) font (OFL-1.1), [FrequencyWords](https://github.com/hermitdave/FrequencyWords) word lists (CC-BY-SA 4.0), [Inno Setup](https://jrsoftware.org/isinfo.php) installer.

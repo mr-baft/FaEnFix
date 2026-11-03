@@ -36,7 +36,7 @@ CloseApplications=force
 RestartApplications=no
 
 [Tasks]
-Name: "autostart"; Description: "Start FaEnFix automatically when Windows starts (runs quietly in the background)"
+Name: "autostart"; Description: "Start FaEnFix with Windows"
 
 [Files]
 Source: "..\dist\FaEnFix.exe"; DestDir: "{app}"; Flags: ignoreversion

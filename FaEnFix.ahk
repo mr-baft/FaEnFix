@@ -56,7 +56,7 @@ Main() {
         IniWrite "1", IniFile, "app", "welcomed"
         SetTimer ShowWelcome, -500
     } else if (arg != "/silent")
-        TrayTip "هر جا اشتباهی تایپ کردی، " HotkeyLabel(Cfg.hk["auto"]) " رو بزن.", "FaEnFix روشنه"
+        TrayTip "کلید اصلاح متن: " HotkeyLabel(Cfg.hk["auto"]), "FaEnFix در حال اجراست"
 }
 
 ; ================= تنظیمات =================
@@ -85,7 +85,7 @@ RegisterHotkeys() {
     }
     HotIf()
     if (bad != "")
-        TrayTip "این کلیدها رو یه برنامه‌ی دیگه گرفته:" bad "`nاز تنظیمات یه ترکیب دیگه انتخاب کن.", "FaEnFix", "Iconx"
+        TrayTip "این کلیدها توسط برنامه‌ی دیگری استفاده می‌شوند:" bad "`nلطفاً در تنظیمات ترکیب دیگری انتخاب کنید.", "FaEnFix", "Iconx"
 }
 
 ; ================= اصلی =================
@@ -559,11 +559,11 @@ SetAdminMode(on) {
         try FileDelete xml
         if ok
             try RegDelete RunKey(), "FaEnFix"
-        Tip(ok ? "از این به بعد توی برنامه‌های ادمین هم کار می‌کنه ✓" : "ساختن Task ناموفق بود")
+        Tip(ok ? "پشتیبانی از برنامه‌های ادمین فعال شد ✓" : "فعال‌سازی ناموفق بود")
     } else {
         RunWait 'schtasks /Delete /F /TN "FaEnFix"', , "Hide"
         SetStartup(true)
-        Tip("حالت ادمین خاموش شد")
+        Tip("پشتیبانی از برنامه‌های ادمین غیرفعال شد")
     }
 }
 
@@ -591,11 +591,11 @@ SetupTray() {
     tm := A_TrayMenu
     tm.Delete()
     tm.Add("تنظیمات", ShowSettings)
-    tm.Add("راهنمای کوتاه", (*) => ShowWelcome())
+    tm.Add("راهنما", (*) => ShowWelcome())
     tm.Add("صفحه‌ی برنامه در GitHub", (*) => Run(HELP_URL))
     tm.Add()
-    tm.Add("اجرا با روشن شدن ویندوز", ToggleStartup)
-    tm.Add("خاموش موقت", ToggleSuspend)
+    tm.Add("اجرا همراه با ویندوز", ToggleStartup)
+    tm.Add("توقف موقت", ToggleSuspend)
     tm.Add()
     tm.Add("خروج", (*) => ExitApp())
     tm.Default := "تنظیمات"
@@ -607,7 +607,7 @@ SetupTray() {
         SetStartup(true)
     }
     if StartupEnabled()
-        tm.Check("اجرا با روشن شدن ویندوز")
+        tm.Check("اجرا همراه با ویندوز")
 }
 
 ToggleStartup(name, *) {
@@ -706,27 +706,27 @@ AddFlatButton(g, opts, label, fn, primary := true) {
 ; اولین اجرا: معرفی کوتاه
 ShowWelcome() {
     g := NewWindow("FaEnFix")
-    AddHeader(g, "FaEnFix آماده است", "دیگه لازم نیست برای یه کیبورد اشتباه، کل جمله رو پاک کنی.")
-    g.AddText("xm y+26 w420", "هر جا یادت رفت زبان کیبورد رو عوض کنی، همین کلیدها رو بزن:")
+    AddHeader(g, "FaEnFix آماده است", "اصلاح متنی که با زبان اشتباه کیبورد تایپ شده است")
+    g.AddText("xm y+26 w420", "برای اصلاح متن، این کلید را بزنید:")
     AddKeys(g, Cfg.hk["auto"], "xm y+12", 13)
 
     g.SetFont("s11 c" UI.muted, "Segoe UI")
-    g.AddText("xm y+18 w420 h44 0x200 Center Background" UI.soft, "sghl ofvd   ←   سلام خبری")
+    g.AddText("xm y+18 w420 h44 0x200 Center Background" UI.soft, "tvnh shuj ni   ←   فردا ساعت ده")
     g.SetFont("s10 c" UI.text, UI.font)
 
-    rows := [[Cfg.hk["to_fa"], "فقط به فارسی"], [Cfg.hk["to_en"], "فقط به انگلیسی"]]
-    g.AddText("xm y+18 c" UI.muted, "اگه خواستی جهت تبدیل رو خودت انتخاب کنی:")
+    rows := [[Cfg.hk["to_fa"], "تبدیل به فارسی"], [Cfg.hk["to_en"], "تبدیل به انگلیسی"]]
+    g.AddText("xm y+18 c" UI.muted, "انتخاب جهت تبدیل:")
     for r in rows {
         AddKeys(g, r[1], "xm y+8", 9)
         g.AddText("x+12 yp hp 0x200", r[2])
     }
-    g.AddText("xm y+14 w420 c" UI.muted, "کل متن غلطه یا چند جاش؟ اول Ctrl+A بزن، بعد همون کلید.")
-    g.AddText("xm y+4 w420 c" UI.muted, "اشتباه شد؟ همون کلید رو دوباره بزن تا برگرده.")
-    g.AddText("xm y+4 w420 c" UI.muted, "برای تنظیمات، روی آیکون FaEnFix کنار ساعت دوبار کلیک کن.")
+    g.AddText("xm y+14 w420 c" UI.muted, "• برای اصلاح کل متن، ابتدا Ctrl+A را بزنید.")
+    g.AddText("xm y+4 w420 c" UI.muted, "• فشردن دوباره‌ی کلید، تغییر را لغو می‌کند.")
+    g.AddText("xm y+4 w420 c" UI.muted, "• تنظیمات: دوبار کلیک روی آیکون FaEnFix در کنار ساعت")
     ; اجرای خودکار تغییری در ویندوز است، پس با تیک قابل‌دیدن (نصب‌کننده انتخاب کاربر را قبلاً پرسیده)
     startOn := StartupEnabled() || !InstalledBySetup()
-    cbStart := g.AddCheckbox("xm y+16 Checked" startOn, "با روشن شدن ویندوز، خودش اجرا بشه")
-    AddFlatButton(g, "xm y+18 w160", "فهمیدم", Done)
+    cbStart := g.AddCheckbox("xm y+16 Checked" startOn, "اجرا همراه با ویندوز")
+    AddFlatButton(g, "xm y+18 w160", "شروع", Done)
     g.OnEvent("Escape", Done)
     g.OnEvent("Close", Done)
     g.Show("AutoSize Center")
@@ -734,7 +734,7 @@ ShowWelcome() {
     Done(*) {
         if (cbStart.Value != StartupEnabled())
             SetStartup(cbStart.Value)
-        A_TrayMenu.%(cbStart.Value ? "Check" : "Uncheck")%("اجرا با روشن شدن ویندوز")
+        A_TrayMenu.%(cbStart.Value ? "Check" : "Uncheck")%("اجرا همراه با ویندوز")
         g.Destroy()
     }
 }
@@ -755,13 +755,13 @@ ShowSettings(*) {
         return
     }
     g := SettingsGui := NewWindow("تنظیمات FaEnFix")
-    AddHeader(g, "تنظیمات", "هر طور راحتی، همون‌طور تنظیمش کن.")
+    AddHeader(g, "تنظیمات", "FaEnFix" (A_IsCompiled ? " " RegExReplace(FileGetVersion(A_ScriptFullPath), "\.0$") : ""))
 
     AddSection(g, "کلیدهای میانبر")
     g.SetFont("c" UI.muted)
-    g.AddText("xm y+2 w480", "روی «تغییر» بزن و ترکیب جدید رو فشار بده. Backspace خاموشش می‌کنه، Esc لغو.")
+    g.AddText("xm y+2 w480", "برای تغییر، روی «تغییر» کلیک و ترکیب جدید را وارد کنید. Backspace: غیرفعال، Esc: لغو")
     g.SetFont("c" UI.text)
-    rows := [["auto", "اصلاح خودکار"], ["auto2", "اصلاح خودکار (کلید دوم)"], ["to_fa", "فقط به فارسی"], ["to_en", "فقط به انگلیسی"]]
+    rows := [["auto", "تبدیل خودکار"], ["auto2", "تبدیل خودکار (کلید دوم)"], ["to_fa", "تبدیل به فارسی"], ["to_en", "تبدیل به انگلیسی"]]
     hk := Map()
     for r in rows {
         g.AddText("xm y+8 w190 h32 0x200 Section", r[2])
@@ -773,19 +773,19 @@ ShowSettings(*) {
     }
 
     AddSection(g, "رفتار برنامه")
-    cbSwitch := g.AddCheckbox("xm y+8 Checked" Cfg.switchLayout, "بعد از اصلاح، زبان کیبورد هم خودش عوض بشه")
-    cbDict := g.AddCheckbox("xm y+4 Checked" Cfg.useDict, "فقط کلمه‌های اشتباه عوض بشن (با فرهنگ لغت)")
-    cbNotify := g.AddCheckbox("xm y+4 Checked" Cfg.notify, "بعد از هر اصلاح، یه پیام کوچیک نشون بده")
-    cbStart := g.AddCheckbox("xm y+4 Checked" StartupEnabled(), "با روشن شدن ویندوز، خودش اجرا بشه")
+    cbSwitch := g.AddCheckbox("xm y+8 Checked" Cfg.switchLayout, "تغییر زبان کیبورد پس از اصلاح")
+    cbDict := g.AddCheckbox("xm y+4 Checked" Cfg.useDict, "اصلاح فقط کلمه‌های اشتباه (با فرهنگ لغت)")
+    cbNotify := g.AddCheckbox("xm y+4 Checked" Cfg.notify, "نمایش اعلان پس از هر اصلاح")
+    cbStart := g.AddCheckbox("xm y+4 Checked" StartupEnabled(), "اجرا همراه با ویندوز")
     adminOn := IniRead(IniFile, "options", "admin_mode", "0") = "1"
-    cbAdmin := g.AddCheckbox("xm y+4 Checked" adminOn, "توی برنامه‌هایی که با Run as administrator باز شدن هم کار کنه")
+    cbAdmin := g.AddCheckbox("xm y+4 Checked" adminOn, "پشتیبانی از برنامه‌های اجراشده با دسترسی ادمین")
     g.SetFont("s9 c" UI.muted)
-    g.AddText("xm+22 y+0 w458", "یه بار تأیید ویندوز می‌خواد، بعدش دیگه نه.")
+    g.AddText("xm+22 y+0 w458", "فقط یک بار به تأیید ویندوز نیاز دارد.")
     g.SetFont("s10 c" UI.text)
 
-    AddSection(g, "برنامه‌هایی که FaEnFix توشون کار نکنه")
+    AddSection(g, "برنامه‌های مستثنا")
     g.SetFont("c" UI.muted)
-    g.AddText("xm y+2 w480", "اسم فایل exe، هر خط یکی. مثلاً ترمینال‌ها، چون اونجا Ctrl+C یعنی توقف برنامه.")
+    g.AddText("xm y+2 w480", "نام فایل exe برنامه‌هایی که FaEnFix در آن‌ها غیرفعال است؛ هر خط یک مورد.")
     g.SetFont("s9 c" UI.text, "Consolas")
     ex := g.AddEdit("xm y+8 w480 r4 -E0x200 Border Background" UI.key, StrReplace(Cfg.exclude, ",", "`n"))
     g.SetFont("s10", UI.font)
@@ -829,7 +829,7 @@ CloseSettings(*) {
 
 ; کلید بعدی که زده شود را به‌صورت شورتکات (مثل +!vk20) برمی‌گرداند
 RecordHotkey(h, *) {
-    h.label.Value := "کلید جدید رو بزن…"
+    h.label.Value := "کلید جدید را بزنید…"
     Suspend true                       ; تا شورتکات‌های فعلی اجرا نشوند
     res := {v: ""}
     ih := InputHook("L0 T8")
