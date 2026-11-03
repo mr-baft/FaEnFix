@@ -1,0 +1,70 @@
+# با هر تگ v* (مثلاً v1.1.0) نصب‌کننده‌ی FaEnFix-Setup.exe و نسخه‌ی قابل‌حمل FaEnFix.exe ساخته و در Releases منتشر می‌شوند
+name: Build & Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download AutoHotkey v2 and Ahk2Exe
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force build | Out-Null
+          Invoke-WebRequest https://www.autohotkey.com/download/ahk-v2.zip -OutFile build/ahk.zip
+          Expand-Archive build/ahk.zip build/ahk
+          $rel = Invoke-RestMethod https://api.github.com/repos/AutoHotkey/Ahk2Exe/releases/latest
+          Invoke-WebRequest $rel.assets[0].browser_download_url -OutFile build/ahk2exe.zip
+          Expand-Archive build/ahk2exe.zip build/ahk2exe
+
+      - name: Set version from tag
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: pwsh
+        run: |
+          $ver = "${{ github.ref_name }}".TrimStart("v")
+          $s = Get-Content FaEnFix.ahk -Raw -Encoding UTF8
+          $s = $s -replace ';@Ahk2Exe-SetVersion .*', ";@Ahk2Exe-SetVersion $ver"
+          [IO.File]::WriteAllText("$PWD/FaEnFix.ahk", $s, [Text.UTF8Encoding]::new($true))
+
+      - name: Compile
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force dist | Out-Null
+          $p = Start-Process build/ahk2exe/Ahk2Exe.exe -Wait -PassThru -ArgumentList `
+            '/in', 'FaEnFix.ahk', '/out', 'dist/FaEnFix.exe', '/base', "$PWD/build/ahk/AutoHotkey64.exe", '/silent'
+          if ($p.ExitCode -ne 0 -or -not (Test-Path dist/FaEnFix.exe)) { throw "Ahk2Exe failed ($($p.ExitCode))" }
+          Get-Item dist/FaEnFix.exe
+
+      - name: Build installer
+        shell: pwsh
+        run: |
+          $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          if (-not (Test-Path $iscc)) { choco install innosetup -y --no-progress | Out-Null }
+          $ver = if ("${{ github.ref }}".StartsWith("refs/tags/v")) { "${{ github.ref_name }}".TrimStart("v") } else { "0.0.0" }
+          & $iscc "/DAppVersion=$ver" installer/FaEnFix.iss
+          if ($LASTEXITCODE -ne 0) { throw "ISCC failed" }
+          Get-Item dist/FaEnFix-Setup.exe
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: FaEnFix
+          path: |
+            dist/FaEnFix-Setup.exe
+            dist/FaEnFix.exe
+
+      - name: Publish release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/FaEnFix-Setup.exe
+            dist/FaEnFix.exe
+          generate_release_notes: true
