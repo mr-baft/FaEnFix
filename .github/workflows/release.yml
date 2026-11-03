@@ -19,11 +19,17 @@ jobs:
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force build | Out-Null
-          Invoke-WebRequest https://www.autohotkey.com/download/ahk-v2.zip -OutFile build/ahk.zip
+          # از GitHub (سایت autohotkey.com پشت Cloudflare است و دانلود خودکار را رد می‌کند)
+          $h = @{ Authorization = "Bearer ${{ github.token }}" }
+          $rel = Invoke-RestMethod https://api.github.com/repos/AutoHotkey/AutoHotkey/releases/latest -Headers $h
+          $zip = $rel.assets | Where-Object name -like '*.zip' | Select-Object -First 1
+          Invoke-WebRequest $zip.browser_download_url -OutFile build/ahk.zip
           Expand-Archive build/ahk.zip build/ahk
-          $rel = Invoke-RestMethod https://api.github.com/repos/AutoHotkey/Ahk2Exe/releases/latest
-          Invoke-WebRequest $rel.assets[0].browser_download_url -OutFile build/ahk2exe.zip
+          $rel = Invoke-RestMethod https://api.github.com/repos/AutoHotkey/Ahk2Exe/releases/latest -Headers $h
+          $zip = $rel.assets | Where-Object name -like '*.zip' | Select-Object -First 1
+          Invoke-WebRequest $zip.browser_download_url -OutFile build/ahk2exe.zip
           Expand-Archive build/ahk2exe.zip build/ahk2exe
+          Get-ChildItem build -Recurse -Filter *.exe | Select-Object -ExpandProperty FullName
 
       - name: Set version from tag
         if: startsWith(github.ref, 'refs/tags/v')
