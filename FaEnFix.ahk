@@ -35,6 +35,12 @@ for exe in ["Code.exe", "Code - Insiders.exe", "Cursor.exe", "VSCodium.exe", "de
 global Maps := Map()
 global Last := {result: "", source: "", hwnd: 0, srcHkl: 0}
 global DictEn := Map(), DictFa := Map()
+; با debug=1 در بخش [app] فایل تنظیمات، مراحل هر اصلاح در debug.log نوشته می‌شود
+global DebugOn := IniRead(IniFile, "app", "debug", "0") = "1"
+DLog(s) {
+    if DebugOn
+        FileAppend FormatTime(, "HH:mm:ss") "." A_MSec " " s "`n", AppDir "\debug.log", "UTF-8"
+}
 
 if (A_IsCompiled || A_LineFile = A_ScriptFullPath)   ; وقتی تست‌ها این فایل را #Include می‌کنند، برنامه بالا نیاید
     Main()
@@ -106,13 +112,17 @@ FixLayout(force, *) {
     saved := ClipboardAll()
     try {
         ; ۱) اگر متنی انتخاب شده، همان را اصلاح کن
+        DLog("--- " WinGetProcessName(hwnd) " | LineCopy=" (WinActive("ahk_group LineCopy") ? 1 : 0) " | force=" force)
         text := CopyText()
+        DLog("copy1: «" text "» formats: " ClipFormats())
         fromSel := true
         ; (VS Code و مشابه‌ها بدون انتخاب، کل خط را با Enter کپی می‌کنند)
-        if (text = "" || (WinActive("ahk_group LineCopy") && RegExMatch(text, "\R$"))) {
+        ; (Visual Studio و SSMS بدون Enter، ولی با یک نشانه در کلیپ‌بورد)
+        if (text = "" || (WinActive("ahk_group LineCopy") && (RegExMatch(text, "\R$") || ClipHas("VisualStudioEditorOperationsLineCutCopyClipboardTag")))) {
             ; ۲) وگرنه از ابتدای خط تا مکان‌نما
             Send "+{Home}"
             text := CopyText()
+            DLog("copy2 after Shift+Home: «" text "»")
             fromSel := false
             if (text = "")
                 return
@@ -888,7 +898,24 @@ CopyText() {
     return ClipWait(line ? 2 : 0.4) ? A_Clipboard : ""
 }
 
+; نام فرمت‌های داخل کلیپ‌بورد (مثلاً نشانه‌ی «کپی کل خط بدون انتخاب» در ویرایشگرها)
+ClipFormats() {
+    names := ""
+    if !DllCall("OpenClipboard", "Ptr", A_ScriptHwnd)
+        return ""
+    f := 0, buf := Buffer(512)
+    while (f := DllCall("EnumClipboardFormats", "UInt", f, "UInt")) {
+        n := DllCall("GetClipboardFormatName", "UInt", f, "Ptr", buf, "Int", 256)
+        names .= (n ? StrGet(buf, n) : f) ","
+    }
+    DllCall("CloseClipboard")
+    return names
+}
+
+ClipHas(name) => DllCall("IsClipboardFormatAvailable", "UInt", DllCall("RegisterClipboardFormat", "Str", name, "UInt"))
+
 Paste(text) {
+    DLog("paste: «" text "»")
     A_Clipboard := text
     ClipWait 0.5
     Send WinActive("ahk_group LineCopy") ? "+{Insert}" : "^{vk56}"   ; Ctrl+V
