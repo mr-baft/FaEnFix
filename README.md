@@ -24,13 +24,15 @@
 <p align="center"><a href="../../releases/latest/download/FaEnFix-Setup.exe"><b>⬇️ دانلود FaEnFix-Setup.exe</b></a></p>
 
 1. فایل `FaEnFix-Setup.exe` را دانلود و اجرا کن، و **Install** را بزن.
-2. همین! برنامه همان لحظه اجرا می‌شود و از این به بعد با روشن شدن ویندوز، بی‌صدا در پس‌زمینه بالا می‌آید.
+2. همین! برنامه همان لحظه اجرا می‌شود و (اگر تیک «Start FaEnFix automatically» را برنداری) از این به بعد با روشن شدن ویندوز، بی‌صدا در پس‌زمینه بالا می‌آید.
+
+FaEnFix هیچ اطلاعاتی به اینترنت نمی‌فرستد ([Privacy policy](#privacy-policy)).
 
 - دسترسی ادمین لازم نیست و نیازی به نصب AutoHotkey یا هیچ چیز دیگری نیست.
 - آیکونش کنار ساعت ویندوز است (اگر نمی‌بینی، روی فلش `^` کنار ساعت بزن).
 - **نسخه‌ی قابل‌حمل:** اگر نصب نمی‌خواهی، از [Releases](../../releases/latest) فایل `FaEnFix.exe` را بگیر و جایی ثابت بگذار. با اولین اجرا خودش را به اجرای خودکار ویندوز اضافه می‌کند.
 
-> **هشدار ویندوز:** چون فایل امضای دیجیتال ندارد، ممکن است SmartScreen بگوید «Windows protected your PC». روی **More info** و بعد **Run anyway** بزن. بعضی آنتی‌ویروس‌ها هم برنامه‌های AutoHotkey را اشتباهی مشکوک می‌دانند. اگر نگرانی، کد کامل در همین مخزن است و می‌توانی [خودت بسازی‌اش](#اجرا-از-روی-کد).
+> **هشدار ویندوز:** تا وقتی امضای دیجیتال ([Code signing policy](#code-signing-policy)) فعال نشده، ممکن است SmartScreen بگوید «Windows protected your PC». روی **More info** و بعد **Run anyway** بزن. بعضی آنتی‌ویروس‌ها هم برنامه‌های AutoHotkey را اشتباهی مشکوک می‌دانند. اگر نگرانی، کد کامل در همین مخزن است و می‌توانی [خودت بسازی‌اش](#اجرا-از-روی-کد).
 
 ---
 
@@ -143,3 +145,23 @@ git push origin v1.1.0
 - Select any text (even Ctrl+A) and every mistyped word anywhere in it is fixed, including fully swapped bilingual text and colloquial Persian. With no selection it works from the caret back to where the script changes. Built-in dictionaries decide word by word, so `hello sghl` becomes `hello سلام`.
 - Reads the mapping from your installed layouts (Persian, Persian Standard, any English layout); restores your clipboard; switches the layout afterwards.
 - Everything is configurable from the tray icon → Settings (saved in `%AppData%\FaEnFix\settings.ini`).
+- Starting with Windows is a checkbox in the installer (on by default) and can be turned off from the tray menu or Settings.
+
+---
+
+## Code signing policy
+
+Free code signing provided by [SignPath.io](https://about.signpath.io), certificate by [SignPath Foundation](https://signpath.org).
+
+- **Committers and reviewers:** [mr-baft](https://github.com/mr-baft)
+- **Approvers:** [mr-baft](https://github.com/mr-baft)
+
+Every release is built from this repository's source by [GitHub Actions](.github/workflows/release.yml) and each signing request is approved manually. Only `FaEnFix.exe` and `FaEnFix-Setup.exe` built here are signed.
+
+## Privacy policy
+
+This program will not transfer any information to other networked systems unless specifically requested by the user or the person installing or operating it.
+
+FaEnFix works entirely on your computer: it reads the text you select (through the clipboard, which it restores afterwards) only when you press its shortcut, and stores its settings in `%AppData%\FaEnFix`. The only network action is opening this GitHub page in your browser when you click "GitHub page" or "Help".
+
+Bundled third-party components: the [AutoHotkey](https://www.autohotkey.com) v2 runtime (GPL-2.0), the [Vazirmatn](https://github.com/rastikerdar/vazirmatn) font (OFL-1.1), word lists from [FrequencyWords](https://github.com/hermitdave/FrequencyWords) (CC-BY-SA 4.0), and the installer is built with [Inno Setup](https://jrsoftware.org/isinfo.php). None of them send data anywhere.

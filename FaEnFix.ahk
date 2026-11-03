@@ -599,12 +599,8 @@ SetupTray() {
     tm.Add()
     tm.Add("خروج", (*) => ExitApp())
     tm.Default := "تنظیمات"
-    ; نسخه‌ی exe قابل‌حمل در اولین اجرا خودش را به اجرای خودکار اضافه می‌کند
-    ; (نصب‌کننده این مقدار را از قبل می‌نویسد و انتخاب کاربر را نگه می‌دارد)
-    if (A_IsCompiled && IniRead(IniFile, "app", "installed", "0") = "0") {
-        IniWrite "1", IniFile, "app", "installed"
-        SetStartup(true)
-    } else if StartupEnabled()
+    ; اجرای خودکار فقط با انتخاب کاربر: تیک نصب‌کننده، یا تیک پنجره‌ی خوش‌آمد (نسخه‌ی قابل‌حمل)
+    if (StartupEnabled() && !AdminTaskExists())
         SetStartup(true)               ; اگر برنامه جابه‌جا شده، مسیر به‌روز شود
     if FileExist(A_Startup "\FaEnFix.lnk") {   ; نسخه‌ی قدیمی از شورتکات استفاده می‌کرد
         FileDelete A_Startup "\FaEnFix.lnk"
@@ -724,11 +720,30 @@ ShowWelcome() {
         AddKeys(g, r[1], "xm y+8", 9)
         g.AddText("x+12 yp hp 0x200", r[2])
     }
-    g.AddText("xm y+14 w420 c" UI.muted, "اشتباه شد؟ همون کلید اول رو دوباره بزن تا برگرده.")
+    g.AddText("xm y+14 w420 c" UI.muted, "کل متن غلطه یا چند جاش؟ اول Ctrl+A بزن، بعد همون کلید.")
+    g.AddText("xm y+4 w420 c" UI.muted, "اشتباه شد؟ همون کلید رو دوباره بزن تا برگرده.")
     g.AddText("xm y+4 w420 c" UI.muted, "برای تنظیمات، روی آیکون FaEnFix کنار ساعت دوبار کلیک کن.")
-    AddFlatButton(g, "xm y+22 w160", "فهمیدم", (*) => g.Destroy())
-    g.OnEvent("Escape", (*) => g.Destroy())
+    ; اجرای خودکار تغییری در ویندوز است، پس با تیک قابل‌دیدن (نصب‌کننده انتخاب کاربر را قبلاً پرسیده)
+    startOn := StartupEnabled() || !InstalledBySetup()
+    cbStart := g.AddCheckbox("xm y+16 Checked" startOn, "با روشن شدن ویندوز، خودش اجرا بشه")
+    AddFlatButton(g, "xm y+18 w160", "فهمیدم", Done)
+    g.OnEvent("Escape", Done)
+    g.OnEvent("Close", Done)
     g.Show("AutoSize Center")
+
+    Done(*) {
+        if (cbStart.Value != StartupEnabled())
+            SetStartup(cbStart.Value)
+        A_TrayMenu.%(cbStart.Value ? "Check" : "Uncheck")%("اجرا با روشن شدن ویندوز")
+        g.Destroy()
+    }
+}
+
+; نصب‌کننده این مقدار را می‌نویسد (و انتخاب اجرای خودکار را خودش پرسیده)
+InstalledBySetup() {
+    try return RegRead("HKCU\Software\FaEnFix", "InstalledBy") = "setup"
+    catch
+        return false
 }
 
 ; ============ پنجره‌ی تنظیمات ============

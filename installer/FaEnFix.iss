@@ -1,6 +1,6 @@
 ﻿; نصب‌کننده‌ی FaEnFix (Inno Setup 6)
 ; ساخت:  iscc /DAppVersion=1.2.0 installer\FaEnFix.iss   ← فایل dist\FaEnFix.exe باید از قبل ساخته شده باشد
-; نصب برای کاربر فعلی، بدون نیاز به دسترسی ادمین؛ بعد از نصب برنامه اجرا و به اجرای خودکار ویندوز اضافه می‌شود
+; نصب برای کاربر فعلی، بدون نیاز به دسترسی ادمین؛ اجرای خودکار با ویندوز یک تیک (پیش‌فرض روشن) در نصب است
 
 #ifndef AppVersion
   #define AppVersion "1.0.0"
@@ -35,6 +35,9 @@ VersionInfoCopyright=Copyright (c) 2026 Alireza Moghaddam
 CloseApplications=force
 RestartApplications=no
 
+[Tasks]
+Name: "autostart"; Description: "Start FaEnFix automatically when Windows starts (runs quietly in the background)"
+
 [Files]
 Source: "..\dist\FaEnFix.exe"; DestDir: "{app}"; Flags: ignoreversion
 
@@ -42,8 +45,10 @@ Source: "..\dist\FaEnFix.exe"; DestDir: "{app}"; Flags: ignoreversion
 Name: "{userprograms}\FaEnFix"; Filename: "{app}\FaEnFix.exe"
 
 [Registry]
-; اجرای خودکار با روشن شدن ویندوز (از منوی برنامه قابل خاموش کردن است)
-Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: string; ValueName: "FaEnFix"; ValueData: """{app}\FaEnFix.exe"" /silent"; Flags: uninsdeletevalue
+; اجرای خودکار با روشن شدن ویندوز، فقط اگر کاربر تیکش را زده باشد (از منوی برنامه هم قابل خاموش کردن است)
+Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: string; ValueName: "FaEnFix"; ValueData: """{app}\FaEnFix.exe"" /silent"; Flags: uninsdeletevalue; Tasks: autostart
+; به برنامه می‌گوید با نصب‌کننده نصب شده (انتخاب اجرای خودکار را دوباره نپرسد)
+Root: HKCU; Subkey: "Software\FaEnFix"; ValueType: string; ValueName: "InstalledBy"; ValueData: "setup"; Flags: uninsdeletekey
 
 [Run]
 Filename: "{app}\FaEnFix.exe"; Description: "Launch FaEnFix"; Flags: nowait postinstall

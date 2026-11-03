@@ -8,6 +8,14 @@ on:
 
 permissions:
   contents: write
+  actions: read          # برای SignPath (خواندن جزئیات job و دانلود artifact)
+
+# امضای دیجیتال (SignPath Foundation): تا وقتی متغیر SIGNPATH_ORGANIZATION_ID در
+# Settings → Secrets and variables → Actions → Variables تعریف نشده، این مرحله‌ها اجرا نمی‌شوند.
+# لازم: secret به اسم SIGNPATH_API_TOKEN، و variableهای SIGNPATH_ORGANIZATION_ID،
+# SIGNPATH_PROJECT_SLUG (مثلاً FaEnFix) و SIGNPATH_POLICY_SLUG (مثلاً release-signing)
+env:
+  SIGN: ${{ vars.SIGNPATH_ORGANIZATION_ID != '' }}
 
 jobs:
   build:
@@ -60,6 +68,34 @@ jobs:
           if ($p.ExitCode -ne 0 -or -not (Test-Path dist/FaEnFix.exe)) { throw "Ahk2Exe failed ($($p.ExitCode))" }
           Get-Item dist/FaEnFix.exe
 
+      - name: Upload unsigned exe for signing
+        id: unsigned-exe
+        if: env.SIGN == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: FaEnFix-exe-unsigned
+          path: dist/FaEnFix.exe
+
+      - name: Sign exe (SignPath)
+        if: env.SIGN == 'true'
+        uses: signpath/github-action-submit-signing-request@v3
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: ${{ vars.SIGNPATH_PROJECT_SLUG }}
+          signing-policy-slug: ${{ vars.SIGNPATH_POLICY_SLUG }}
+          github-artifact-id: ${{ steps.unsigned-exe.outputs.artifact-id }}
+          wait-for-completion: true
+          wait-for-completion-timeout-in-seconds: 3600     # هر امضا دستی تأیید می‌شود
+          output-artifact-directory: signed-exe
+
+      - name: Use signed exe
+        if: env.SIGN == 'true'
+        shell: pwsh
+        run: |
+          Copy-Item signed-exe/FaEnFix.exe dist/FaEnFix.exe -Force
+          Get-AuthenticodeSignature dist/FaEnFix.exe | Format-List Status, SignerCertificate
+
       - name: Build installer
         shell: pwsh
         run: |
@@ -69,6 +105,34 @@ jobs:
           & $iscc "/DAppVersion=$ver" installer/FaEnFix.iss
           if ($LASTEXITCODE -ne 0) { throw "ISCC failed" }
           Get-Item dist/FaEnFix-Setup.exe
+
+      - name: Upload unsigned installer for signing
+        id: unsigned-setup
+        if: env.SIGN == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: FaEnFix-setup-unsigned
+          path: dist/FaEnFix-Setup.exe
+
+      - name: Sign installer (SignPath)
+        if: env.SIGN == 'true'
+        uses: signpath/github-action-submit-signing-request@v3
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: ${{ vars.SIGNPATH_PROJECT_SLUG }}
+          signing-policy-slug: ${{ vars.SIGNPATH_POLICY_SLUG }}
+          github-artifact-id: ${{ steps.unsigned-setup.outputs.artifact-id }}
+          wait-for-completion: true
+          wait-for-completion-timeout-in-seconds: 3600
+          output-artifact-directory: signed-setup
+
+      - name: Use signed installer
+        if: env.SIGN == 'true'
+        shell: pwsh
+        run: |
+          Copy-Item signed-setup/FaEnFix-Setup.exe dist/FaEnFix-Setup.exe -Force
+          Get-AuthenticodeSignature dist/FaEnFix-Setup.exe | Format-List Status, SignerCertificate
 
       - uses: actions/upload-artifact@v4
         with:
@@ -85,3 +149,5 @@ jobs:
             dist/FaEnFix-Setup.exe
             dist/FaEnFix.exe
           generate_release_notes: true
+          body: |
+            **[⬇️ FaEnFix-Setup.exe](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/FaEnFix-Setup.exe)** · [Code signing policy](https://github.com/${{ github.repository }}#code-signing-policy) · [Privacy policy](https://github.com/${{ github.repository }}#privacy-policy)
