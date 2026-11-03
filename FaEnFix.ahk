@@ -28,7 +28,8 @@ for exe in StrSplit(Cfg.exclude, ",", " `t")
 ; ویرایشگرهایی که Ctrl+C بدون انتخاب، کل خط را (با Enter) کپی می‌کنند
 for exe in ["Code.exe", "Code - Insiders.exe", "Cursor.exe", "VSCodium.exe", "devenv.exe"
           , "sublime_text.exe", "notepad++.exe", "idea64.exe", "pycharm64.exe", "webstorm64.exe"
-          , "rider64.exe", "clion64.exe", "goland64.exe", "phpstorm64.exe", "studio64.exe"]
+          , "rider64.exe", "clion64.exe", "goland64.exe", "phpstorm64.exe", "studio64.exe"
+          , "Ssms.exe", "azuredatastudio.exe", "datagrip64.exe", "Windsurf.exe"]
     GroupAdd "LineCopy", "ahk_exe " exe
 
 global Maps := Map()
@@ -881,8 +882,10 @@ HotkeyLabel(hk) {
 ; (مثل ترمینال VS Code) برخلاف Ctrl+C برنامه‌ی در حال اجرا را متوقف نمی‌کند
 CopyText() {
     A_Clipboard := ""
-    Send WinActive("ahk_group LineCopy") ? "^{Insert}" : "^{vk43}"   ; Ctrl+C مستقل از زبان کیبورد
-    return ClipWait(0.4) ? A_Clipboard : ""
+    line := WinActive("ahk_group LineCopy")
+    Send line ? "^{Insert}" : "^{vk43}"   ; Ctrl+C مستقل از زبان کیبورد
+    ; این ویرایشگرها همیشه چیزی کپی می‌کنند ولی گاهی کند (SSMS)؛ کپی دیرهنگام نباید با کپی بعدی قاطی شود
+    return ClipWait(line ? 2 : 0.4) ? A_Clipboard : ""
 }
 
 Paste(text) {
