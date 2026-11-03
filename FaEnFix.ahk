@@ -35,20 +35,29 @@ global Maps := Map()
 global Last := {result: "", source: "", hwnd: 0, srcHkl: 0}
 global DictEn := Map(), DictFa := Map()
 
-if FileExist(A_ScriptDir "\icon.ico") && !A_IsCompiled
-    TraySetIcon A_ScriptDir "\icon.ico"
-LoadDicts()
-SetupTray()
-RegisterHotkeys()
+if (A_IsCompiled || A_LineFile = A_ScriptFullPath)   ; وقتی تست‌ها این فایل را #Include می‌کنند، برنامه بالا نیاید
+    Main()
 
-Arg := A_Args.Length ? A_Args[1] : ""
-if (Arg = "/settings")
-    SetTimer ShowSettings, -200
-else if (Arg = "/welcome" || IniRead(IniFile, "app", "welcomed", "0") = "0") {
-    IniWrite "1", IniFile, "app", "welcomed"
-    SetTimer ShowWelcome, -500
-} else if (Arg != "/silent")
-    TrayTip "هر جا اشتباهی تایپ کردی، " HotkeyLabel(Cfg.hk["auto"]) " رو بزن.", "FaEnFix روشنه"
+Main() {
+    arg := A_Args.Length ? A_Args[1] : ""
+    if (arg = "/admin-on" || arg = "/admin-off")
+        SetAdminMode(arg = "/admin-on")
+    else
+        CheckAdminMode()
+    if FileExist(A_ScriptDir "\icon.ico") && !A_IsCompiled
+        TraySetIcon A_ScriptDir "\icon.ico"
+    LoadDicts()
+    SetupTray()
+    RegisterHotkeys()
+
+    if (arg = "/settings")
+        SetTimer ShowSettings, -200
+    else if (arg = "/welcome" || IniRead(IniFile, "app", "welcomed", "0") = "0") {
+        IniWrite "1", IniFile, "app", "welcomed"
+        SetTimer ShowWelcome, -500
+    } else if (arg != "/silent")
+        TrayTip "هر جا اشتباهی تایپ کردی، " HotkeyLabel(Cfg.hk["auto"]) " رو بزن.", "FaEnFix روشنه"
+}
 
 ; ================= تنظیمات =================
 LoadConfig() {
@@ -117,6 +126,20 @@ FixLayout(force, *) {
             if Cfg.notify
                 Tip("↩ برگشت")
             return
+        }
+
+        ; متن انتخاب‌شده: هر کلمه‌ی اشتباه، هر جای متن که باشد (مثلاً وسط یک پاراگراف)
+        if (fromSel && Cfg.useDict && DictEn.Count && DictFa.Count) {
+            newText := FixMixed(text, m, force, &fixed, &endsFa)
+            if fixed {
+                Paste(newText)
+                Last := {result: newText, source: text, hwnd: hwnd, srcHkl: endsFa ? en : fa}
+                if Cfg.switchLayout
+                    SwitchTo(endsFa ? fa : en)
+                if Cfg.notify
+                    Tip(fixed " کلمه اصلاح شد ✓")
+                return
+            }
         }
 
         if !SplitTail(text, &prefix, &seg, &toPersian, force) {
@@ -223,8 +246,12 @@ KeyChar(sc, hkl, state) {
 }
 
 ; ============ تشخیص محدوده‌ی اشتباه ============
+; فقط حرف‌های فارسی/عربی؛ علائم (، ؛ ؟ « ») و رقم‌ها حرف حساب نمی‌شوند
 IsFaChar(c) {
     o := Ord(c)
+    if (o = 0x060C || o = 0x061B || o = 0x061F || o = 0x066B || o = 0x066C || o = 0x06D4
+        || (o >= 0x0660 && o <= 0x0669) || (o >= 0x06F0 && o <= 0x06F9))
+        return false
     return (o >= 0x0600 && o <= 0x06FF) || (o >= 0xFB50 && o <= 0xFDFF) || (o >= 0xFE70 && o <= 0xFEFF)
 }
 IsEnChar(c) => RegExMatch(c, "^[A-Za-z]$")
@@ -262,7 +289,7 @@ SplitTail(text, &prefix, &seg, &toPersian, force := "") {
 ; فقط کلمه‌هایی را تبدیل می‌کند که با کیبورد اشتباه تایپ شده‌اند (مثلاً «hello sghl» → «hello سلام»)
 FixSegment(seg, toPersian, m, useDict) {
     if (!useDict || !DictEn.Count || !DictFa.Count)
-        return Transform(seg, toPersian, m)
+        return JoinMi(Transform(seg, toPersian, m), toPersian)
     toks := [], pos := 1
     while RegExMatch(seg, "\S+", &mt, pos) {
         toks.Push({s: mt.Pos, len: mt.Len, c: Classify(mt[0], toPersian, m)})
@@ -286,14 +313,80 @@ FixSegment(seg, toPersian, m, useDict) {
         anyWrong := anyWrong || t.c = 1
     }
     if !anyWrong                       ; هیچ کلمه‌ای غلط تشخیص داده نشد: کاربر خواسته، پس همه تبدیل شود
-        return Transform(seg, toPersian, m)
+        return JoinMi(Transform(seg, toPersian, m), toPersian)
     out := "", pos := 1
     for t in toks {
         w := SubStr(seg, t.s, t.len)
         out .= SubStr(seg, pos, t.s - pos) . (t.c = 1 ? Transform(w, toPersian, m) : w)
         pos := t.s + t.len
     }
-    return out . SubStr(seg, pos)
+    return JoinMi(out . SubStr(seg, pos), toPersian)
+}
+
+; «می خوام» → «می‌خوام»: روی کیبورد انگلیسی Shift+Space فاصله‌ی معمولی است، نه نیم‌فاصله
+; (فقط روی بخشی صدا زده می‌شود که از انگلیسی به فارسی تبدیل شده)
+JoinMi(s, toPersian := true) => toPersian ? RegExReplace(s, "(?<!\S)(ن?می) (?=[\x{0621}-\x{06CC}])", "$1" Chr(0x200C)) : s
+
+; کل متن را کلمه‌به‌کلمه بررسی می‌کند و فقط کلمه‌های اشتباه را (هر جای متن) برمی‌گرداند
+; fixed = تعداد کلمه‌های اصلاح‌شده، endsFa = آخرین کلمه‌ی متن نهایی فارسی است
+FixMixed(text, m, force, &fixed, &endsFa) {
+    toks := [], pos := 1
+    while RegExMatch(text, "\S+", &mt, pos) {
+        nFa := 0, nEn := 0
+        Loop Parse mt[0] {
+            if IsFaChar(A_LoopField)
+                nFa++
+            else if IsEnChar(A_LoopField)
+                nEn++
+        }
+        sc := (nFa && !nEn) ? "fa" : (nEn && !nFa) ? "en" : ""
+        ; علامتی که روی کیبورد فارسی حرف است (مثل «,» = «و») تابع کلمه‌های کناری‌اش می‌شود
+        weak := (sc = "" && !nFa && !nEn && IsFaKeysOnly(mt[0], m))
+        if weak
+            sc := "en"
+        ; «به فارسی» فقط کلمه‌های انگلیسی‌نما را عوض می‌کند و برعکس
+        skip := sc = "" || (force = "fa" && sc != "en") || (force = "en" && sc != "fa")
+        toks.Push({s: mt.Pos, len: mt.Len, sc: sc, weak: weak, c: skip ? -1 : weak ? 0 : Classify(mt[0], sc = "en", m)})
+        pos := mt.Pos + mt.Len
+    }
+    ; کلمه‌ی ناشناخته (اسم، شکسته‌نویسی) تابع همسایه‌ی هم‌خطش است: اول بعدی، بعد قبلی
+    Loop 2 {
+        back := A_Index = 1
+        cur := 0, curSc := ""
+        Loop toks.Length {
+            t := toks[back ? toks.Length - A_Index + 1 : A_Index]
+            if (t.sc != curSc)
+                cur := 0, curSc := t.sc
+            if t.c
+                cur := t.c
+            else if cur
+                t.c := cur
+        }
+    }
+    ; «,» تنها که هنوز معلوم نیست: در متنی که فارسی دارد «و» است، در متن انگلیسی ویرگول
+    hasFa := false
+    for t in toks
+        hasFa := hasFa || (!t.weak && ((t.sc = "fa" && t.c != 1) || (t.sc = "en" && t.c = 1)))
+    for t in toks
+        if (t.weak && !t.c)
+            t.c := hasFa ? 1 : -1
+    out := "", pos := 1, fixed := 0, endsFa := false, prevMi := false
+    for t in toks {
+        w := SubStr(text, t.s, t.len), gap := SubStr(text, pos, t.s - pos)
+        toFa := t.c = 1 && t.sc = "en"
+        if (t.c = 1) {
+            w := Transform(w, t.sc = "en", m)
+            fixed++
+        }
+        if (prevMi && toFa && gap = " ")          ; «می خوام» → «می‌خوام»
+            gap := Chr(0x200C)
+        prevMi := toFa && (w = "می" || w = "نمی")
+        out .= gap . w
+        pos := t.s + t.len
+        if (t.sc != "")
+            endsFa := (t.c = 1) ? (t.sc = "en") : (t.sc = "fa")
+    }
+    return out . SubStr(text, pos)
 }
 
 ; ۱ = با کیبورد اشتباه تایپ شده، ‎-۱ = درست است، ۰ = نامعلوم
@@ -301,6 +394,8 @@ Classify(w, toPersian, m) {
     static INF := 0x7FFFFFFF
     t := Trim2(w)
     if toPersian {
+        ; «]i» (= «چه») نباید به «i» کوتاه شود: علامتی که روی کیبورد فارسی حرف است جزو کلمه است
+        t := TrimKeepFaKeys(w, m)
         own := Min(Rank(DictEn, StrLower(w)), Rank(DictEn, StrLower(t)))
         oth := Min(Rank(DictFa, NormFa(Transform(w, true, m))), Rank(DictFa, NormFa(Transform(t, true, m))))
     } else {
@@ -308,9 +403,32 @@ Classify(w, toPersian, m) {
         c := Transform(w, false, m)
         oth := Min(Rank(DictEn, StrLower(c)), Rank(DictEn, StrLower(Trim2(c))))
     }
-    if (own = INF && oth = INF)
+    if (own = INF && oth = INF) {
+        ; نسخه‌ی فارسی‌اش حرف نامعمول دارد (مثلاً GitHub → أهفآعذ)، پس واقعاً انگلیسی است
+        if (toPersian && RegExMatch(Trim2(Transform(w, true, m)), "[^آابپتثجچحخدذرزژسشصضطظعغفقکگلمنوهیئ\x{200C}]"))
+            return -1
         return 0
+    }
     return oth < own ? 1 : -1
+}
+
+; علامت‌های دو سر کلمه را برمی‌دارد، جز آن‌هایی که روی کیبورد فارسی حرف‌اند
+TrimKeepFaKeys(s, m) {
+    keep(c) => IsEnChar(c) || (m.toFa.Has(c) && IsFaChar(m.toFa[c]))
+    a := 1, b := StrLen(s)
+    while (a <= b && !keep(SubStr(s, a, 1)))
+        a++
+    while (b >= a && !keep(SubStr(s, b, 1)))
+        b--
+    return SubStr(s, a, b - a + 1)
+}
+
+; همه‌ی نویسه‌ها کلیدهایی‌اند که روی کیبورد فارسی حرف می‌دهند
+IsFaKeysOnly(s, m) {
+    Loop Parse s
+        if !(m.toFa.Has(A_LoopField) && IsFaChar(m.toFa[A_LoopField]))
+            return false
+    return true
 }
 
 Trim2(s) => RegExReplace(s, "^[^\pL]+|[^\pL]+$")
@@ -363,8 +481,10 @@ LoadDicts() {
 ; ============ منوی کنار ساعت و اجرای خودکار ============
 RunKey() => "HKCU\Software\Microsoft\Windows\CurrentVersion\Run"
 
-; اجرای خودکار با رجیستری (همان جایی که نصب‌کننده هم می‌نویسد)
+; اجرای خودکار با رجیستری (همان جایی که نصب‌کننده هم می‌نویسد)؛ در حالت ادمین با Task Scheduler
 StartupEnabled() {
+    if AdminTaskExists()
+        return true
     try return RegRead(RunKey(), "FaEnFix") != ""
     catch
         return false
@@ -372,10 +492,72 @@ StartupEnabled() {
 
 SetStartup(on) {
     if on {
-        cmd := A_IsCompiled ? '"' A_ScriptFullPath '"' : '"' A_AhkPath '" "' A_ScriptFullPath '"'
-        RegWrite cmd " /silent", "REG_SZ", RunKey(), "FaEnFix"
-    } else
+        RegWrite SelfCmd() " /silent", "REG_SZ", RunKey(), "FaEnFix"
+    } else {
         try RegDelete RunKey(), "FaEnFix"
+        if (A_IsAdmin && AdminTaskExists()) {     ; در حالت ادمین، اجرای خودکار همان Task است
+            RunWait 'schtasks /Delete /F /TN "FaEnFix"', , "Hide"
+            IniWrite "0", IniFile, "options", "admin_mode"
+        }
+    }
+}
+
+SelfCmd() => A_IsCompiled ? '"' A_ScriptFullPath '"' : '"' A_AhkPath '" "' A_ScriptFullPath '"'
+
+; ============ حالت ادمین: کار در برنامه‌هایی که با Run as administrator باز شده‌اند ============
+; ویندوز اجازه نمی‌دهد برنامه‌ی معمولی به پنجره‌ی ادمین کلید بفرستد؛ پس FaEnFix با یک Scheduled Task
+; (بدون پرسیدن هر بار) با دسترسی بالا اجرا می‌شود. ساختن و پاک کردن Task یک بار تأیید ویندوز می‌خواهد.
+AdminTaskExists() => RunWait('schtasks /Query /TN "FaEnFix"', , "Hide") = 0
+
+; در حالت ادمین، اگر این نسخه بدون دسترسی بالا اجرا شده، از راه Task دوباره اجرا شو
+CheckAdminMode() {
+    if (!A_IsAdmin && IniRead(IniFile, "options", "admin_mode", "0") = "1" && AdminTaskExists()) {
+        if (RunWait('schtasks /Run /TN "FaEnFix"', , "Hide") = 0)
+            ExitApp
+    }
+}
+
+SetAdminMode(on) {
+    if !A_IsAdmin {                    ; یک بار تأیید ویندوز؛ نسخه‌ی ادمین بقیه‌ی کار را انجام می‌دهد
+        try Run '*RunAs ' SelfCmd() (on ? " /admin-on" : " /admin-off")
+        catch
+            return Tip("تأیید ویندوز داده نشد")
+        ExitApp
+    }
+    IniWrite on ? "1" : "0", IniFile, "options", "admin_mode"
+    if on {
+        xml := AppDir "\task.xml"
+        try FileDelete xml
+        FileAppend AdminTaskXml(), xml, "UTF-16"
+        ok := RunWait('schtasks /Create /F /TN "FaEnFix" /XML "' xml '"', , "Hide") = 0
+        try FileDelete xml
+        if ok
+            try RegDelete RunKey(), "FaEnFix"
+        Tip(ok ? "از این به بعد توی برنامه‌های ادمین هم کار می‌کنه ✓" : "ساختن Task ناموفق بود")
+    } else {
+        RunWait 'schtasks /Delete /F /TN "FaEnFix"', , "Hide"
+        SetStartup(true)
+        Tip("حالت ادمین خاموش شد")
+    }
+}
+
+; اجرا با ورود کاربر، با بالاترین دسترسی، بدون محدودیت زمان و باتری
+AdminTaskXml() {
+    if A_IsCompiled
+        cmd := A_ScriptFullPath, args := "/silent"
+    else
+        cmd := A_AhkPath, args := '"' A_ScriptFullPath '" /silent'
+    user := EnvGet("USERDOMAIN") "\" A_UserName
+    esc(s) => StrReplace(StrReplace(StrReplace(StrReplace(s, "&", "&amp;"), "<", "&lt;"), ">", "&gt;"), '"', "&quot;")
+    return '<?xml version="1.0" encoding="UTF-16"?>`n'
+        . '<Task version="1.2" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">`n'
+        . '  <RegistrationInfo><Description>FaEnFix (admin mode)</Description></RegistrationInfo>`n'
+        . '  <Triggers><LogonTrigger><Enabled>true</Enabled><UserId>' esc(user) '</UserId></LogonTrigger></Triggers>`n'
+        . '  <Principals><Principal id="Author"><UserId>' esc(user) '</UserId><LogonType>InteractiveToken</LogonType><RunLevel>HighestAvailable</RunLevel></Principal></Principals>`n'
+        . '  <Settings><MultipleInstancesPolicy>IgnoreNew</MultipleInstancesPolicy><DisallowStartIfOnBatteries>false</DisallowStartIfOnBatteries>'
+        . '<StopIfGoingOnBatteries>false</StopIfGoingOnBatteries><ExecutionTimeLimit>PT0S</ExecutionTimeLimit><Priority>5</Priority></Settings>`n'
+        . '  <Actions Context="Author"><Exec><Command>' esc(cmd) '</Command><Arguments>' esc(args) '</Arguments></Exec></Actions>`n'
+        . '</Task>`n'
 }
 
 SetupTray() {
@@ -554,6 +736,11 @@ ShowSettings(*) {
     cbDict := g.AddCheckbox("xm y+4 Checked" Cfg.useDict, "فقط کلمه‌های اشتباه عوض بشن (با فرهنگ لغت)")
     cbNotify := g.AddCheckbox("xm y+4 Checked" Cfg.notify, "بعد از هر اصلاح، یه پیام کوچیک نشون بده")
     cbStart := g.AddCheckbox("xm y+4 Checked" StartupEnabled(), "با روشن شدن ویندوز، خودش اجرا بشه")
+    adminOn := IniRead(IniFile, "options", "admin_mode", "0") = "1"
+    cbAdmin := g.AddCheckbox("xm y+4 Checked" adminOn, "توی برنامه‌هایی که با Run as administrator باز شدن هم کار کنه")
+    g.SetFont("s9 c" UI.muted)
+    g.AddText("xm+22 y+0 w458", "یه بار تأیید ویندوز می‌خواد، بعدش دیگه نه.")
+    g.SetFont("s10 c" UI.text)
 
     AddSection(g, "برنامه‌هایی که FaEnFix توشون کار نکنه")
     g.SetFont("c" UI.muted)
@@ -582,6 +769,8 @@ ShowSettings(*) {
         IniWrite list, IniFile, "apps", "exclude"
         if (cbStart.Value != StartupEnabled())
             SetStartup(cbStart.Value)
+        if (cbAdmin.Value != adminOn)
+            SetAdminMode(cbAdmin.Value)    ; اگر تأیید ویندوز لازم باشد، برنامه با دسترسی بالا دوباره باز می‌شود
         Reload
     }
     Reset(*) {
@@ -647,16 +836,18 @@ HotkeyLabel(hk) {
 }
 
 ; ============ کلیپ‌بورد و کیبورد ============
+; در ویرایشگرها Ctrl+Insert / Shift+Insert: همان کپی/پیست است، ولی در ترمینالِ داخلشان
+; (مثل ترمینال VS Code) برخلاف Ctrl+C برنامه‌ی در حال اجرا را متوقف نمی‌کند
 CopyText() {
     A_Clipboard := ""
-    Send "^{vk43}"                     ; Ctrl+C مستقل از زبان کیبورد
+    Send WinActive("ahk_group LineCopy") ? "^{Insert}" : "^{vk43}"   ; Ctrl+C مستقل از زبان کیبورد
     return ClipWait(0.4) ? A_Clipboard : ""
 }
 
 Paste(text) {
     A_Clipboard := text
     ClipWait 0.5
-    Send "^{vk56}"                     ; Ctrl+V
+    Send WinActive("ahk_group LineCopy") ? "+{Insert}" : "^{vk56}"   ; Ctrl+V
     Sleep 100
 }
 

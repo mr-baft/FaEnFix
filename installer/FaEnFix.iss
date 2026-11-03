@@ -55,11 +55,38 @@ Filename: "{sys}\taskkill.exe"; Parameters: "/F /IM FaEnFix.exe"; Flags: runhidd
 Type: filesandordirs; Name: "{userappdata}\FaEnFix"
 
 [Code]
-// اگر برنامه در حال اجراست، قبل از نصب نسخه‌ی جدید بسته شود
-function PrepareToInstall(var NeedsRestart: Boolean): String;
+// «حالت ادمین» برنامه یک Scheduled Task به اسم FaEnFix می‌سازد و برنامه با دسترسی بالا اجرا می‌شود
+function AdminTaskExists(): Boolean;
 var
   Code: Integer;
 begin
+  Result := Exec(ExpandConstant('{sys}\schtasks.exe'), '/Query /TN "FaEnFix"', '', SW_HIDE, ewWaitUntilTerminated, Code) and (Code = 0);
+end;
+
+// بستن برنامه؛ نسخه‌ی ادمین فقط با تأیید ویندوز بسته می‌شود (و در حذف، Task هم پاک می‌شود)
+procedure StopApp(DeleteTask: Boolean);
+var
+  Code: Integer;
+  Cmd: String;
+begin
   Exec(ExpandConstant('{sys}\taskkill.exe'), '/F /IM FaEnFix.exe', '', SW_HIDE, ewWaitUntilTerminated, Code);
+  if AdminTaskExists() then
+  begin
+    Cmd := '/c taskkill /F /IM FaEnFix.exe';
+    if DeleteTask then
+      Cmd := Cmd + ' & schtasks /Delete /F /TN FaEnFix';
+    ShellExec('runas', ExpandConstant('{cmd}'), Cmd, '', SW_HIDE, ewWaitUntilTerminated, Code);
+  end;
+end;
+
+function PrepareToInstall(var NeedsRestart: Boolean): String;
+begin
+  StopApp(False);
   Result := '';
+end;
+
+procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
+begin
+  if CurUninstallStep = usUninstall then
+    StopApp(True);
 end;

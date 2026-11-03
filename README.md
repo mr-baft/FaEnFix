@@ -48,9 +48,10 @@
 ## چطور کار می‌کند؟
 
 **کدام متن تبدیل می‌شود؟**
-- اگر متنی را **انتخاب** کرده باشی، دقیقاً همان تبدیل می‌شود.
+- اگر متنی را **انتخاب** کرده باشی (مثلاً کل متن با <kbd>Ctrl</kbd>+<kbd>A</kbd>)، تک‌تک کلمه‌هایش بررسی می‌شوند و **هر کلمه‌ی اشتباه، هر جای متن**، درست می‌شود. یعنی اگر وسط یک پاراگراف بلند چند کلمه یا چند جمله را اشتباهی تایپ کرده‌ای، یا کل یک متن دوزبانه را برعکس نوشته‌ای، با یک شورتکات همه درست می‌شوند و بقیه‌ی متن دست نمی‌خورد.
 - اگر چیزی انتخاب نکرده باشی، از مکان‌نما به عقب می‌رود تا جایی که خط (فارسی/انگلیسی) عوض شده. پس در «سلام `khl ofvd`»، کلمه‌ی «سلام» دست نمی‌خورد.
 - با **فرهنگ لغت** (حدود ۴۷ هزار کلمه‌ی انگلیسی و ۳۷ هزار کلمه‌ی فارسی) هر کلمه جداگانه بررسی می‌شود: آیا خودش کلمه‌ی معناداری است، یا نسخه‌ی تبدیل‌شده‌اش؟ برای همین در `hello sghl` فقط `sghl` تبدیل می‌شود. کلمه‌ای که در هیچ‌کدام از دو فرهنگ نیست (مثل اسم‌ها) تابع کلمه‌ی کناری‌اش می‌شود.
+- **محاوره‌ای هم بلد است.** فرهنگ لغت فارسی از زیرنویس فیلم‌ها ساخته شده، پس «میخوام»، «اینو»، «چیکار»، «نمیام» و امثالشان را می‌شناسد. نیم‌فاصله‌ی «می‌» و «نمی‌» هم خودش برمی‌گردد.
 
 **کیبورد تو را می‌شناسد.** جدول تبدیل ثابت نیست؛ مستقیم از کیبوردهای نصب‌شده روی ویندوز خوانده می‌شود. پس «فارسی» قدیمی ویندوز، «فارسی استاندارد» (ISIRI 9147) و هر چیدمان انگلیسی درست کار می‌کنند.
 
@@ -62,14 +63,15 @@
 
 <img src="docs/settings.png" width="470">
 
-- **شورتکات‌ها:** روی «ضبط» بزن و ترکیب کلید دلخواهت را فشار بده. <kbd>Backspace</kbd> شورتکات را خالی (غیرفعال) می‌کند و <kbd>Esc</kbd> لغو می‌کند.
+- **شورتکات‌ها:** روی «تغییر» بزن و ترکیب کلید دلخواهت را فشار بده. <kbd>Backspace</kbd> شورتکات را خالی (غیرفعال) می‌کند و <kbd>Esc</kbd> لغو می‌کند.
 - **عوض کردن زبان کیبورد بعد از اصلاح**
 - **فرهنگ لغت:** اگر خاموش باشد، کل متن از ابتدای خط تا مکان‌نما تبدیل می‌شود.
 - **پیام کوچک بعد از هر تبدیل**
 - **اجرا با روشن شدن ویندوز**
+- **کار در برنامه‌هایی که با Run as administrator باز شده‌اند:** یک بار تأیید ویندوز می‌خواهد و بعد از آن FaEnFix با دسترسی بالا بالا می‌آید.
 - **برنامه‌های مستثنا:** نام فایل exe برنامه‌هایی که FaEnFix نباید در آن‌ها کار کند (اسمش را در Task Manager ← Details می‌بینی).
 
-دکمه‌ی **پیش‌فرض‌ها** همه‌چیز را به حالت اول برمی‌گرداند. تنظیمات در `%AppData%\FaEnFix\settings.ini` ذخیره می‌شوند و دستی هم قابل ویرایش‌اند:
+دکمه‌ی **تنظیمات اولیه** همه‌چیز را به حالت اول برمی‌گرداند. تنظیمات در `%AppData%\FaEnFix\settings.ini` ذخیره می‌شوند و دستی هم قابل ویرایش‌اند:
 
 ```ini
 [hotkeys]
@@ -87,10 +89,10 @@ exclude=WindowsTerminal.exe,cmd.exe,powershell.exe
 
 ## محدودیت‌ها و نکته‌ها
 
-- **ترمینال‌ها:** در cmd، PowerShell، Windows Terminal و مشابه‌ها غیرفعال است، چون آن‌جا <kbd>Ctrl</kbd>+<kbd>C</kbd> برنامه‌ی در حال اجرا را متوقف می‌کند. ترمینال **داخل** VS Code قابل تشخیص نیست، پس آن‌جا شورتکات را نزن.
+- **ترمینال‌ها:** در cmd، PowerShell، Windows Terminal و مشابه‌ها غیرفعال است، چون آن‌جا <kbd>Ctrl</kbd>+<kbd>C</kbd> برنامه‌ی در حال اجرا را متوقف می‌کند. در VS Code و ویرایشگرهای مشابه، FaEnFix به جای <kbd>Ctrl</kbd>+<kbd>C</kbd> از <kbd>Ctrl</kbd>+<kbd>Insert</kbd> استفاده می‌کند، پس ترمینال داخل آن‌ها هم امن است.
 - **VS Code:** <kbd>Shift</kbd>+<kbd>Alt</kbd>+<kbd>F</kbd> در VS Code یعنی «Format Document». اگر به آن نیاز داری، در تنظیمات شورتکات «تبدیل به فارسی» را عوض کن.
-- **برنامه‌هایی که با Run as administrator باز شده‌اند:** ویندوز اجازه نمی‌دهد برنامه‌ی معمولی به آن‌ها کلید بفرستد. اگر لازم داری، FaEnFix را هم با Run as administrator اجرا کن.
-- کلمه‌ای که در هیچ فرهنگ لغتی نیست (مثلاً `github`) ممکن است همراه کلمه‌ی کناری‌اش تبدیل شود. در این حالت فقط بخش اشتباه را انتخاب کن و بعد شورتکات را بزن.
+- **برنامه‌هایی که با Run as administrator باز شده‌اند:** ویندوز اجازه نمی‌دهد برنامه‌ی معمولی به آن‌ها کلید بفرستد. گزینه‌اش را در تنظیمات روشن کن.
+- کلمه‌ای که در هیچ فرهنگ لغتی نیست (مثلاً اسم خاص با حروف کوچک) ممکن است همراه کلمه‌ی کناری‌اش تبدیل شود. اگر شد، همان شورتکات را دوباره بزن تا برگردد، بعد فقط بخش اشتباه را انتخاب کن.
 - فقط حروف و علامت‌های اصلی کیبورد تبدیل می‌شوند، نه حروفی که با <kbd>AltGr</kbd> تایپ می‌شوند.
 
 ## حذف
@@ -111,6 +113,8 @@ exclude=WindowsTerminal.exe,cmd.exe,powershell.exe
 ```powershell
 powershell -ExecutionPolicy Bypass -File tools\build.ps1
 ```
+
+تست‌ها: `tests\unit.ahk` (منطق تبدیل، بیش از ۳۰ حالت) و `tests\e2e-notepad.ahk` (کلیدزدن واقعی در Notepad).
 
 ساخت دوباره‌ی فرهنگ لغت‌ها: `tools\build-dict.ps1` — آیکون: `python tools\make-icon.py`
 
@@ -136,6 +140,6 @@ git push origin v1.1.0
 **FaEnFix** fixes text typed with the wrong keyboard layout (Persian ⇄ English) in any Windows app. Download [**FaEnFix-Setup.exe**](../../releases/latest/download/FaEnFix-Setup.exe) and click Install — no admin rights needed. It starts right away and then runs silently in the background at every Windows startup. A portable `FaEnFix.exe` is also in [Releases](../../releases/latest).
 
 - <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Space</kbd> / <kbd>Pause</kbd>: auto-detect direction (press again to undo) · <kbd>Shift</kbd>+<kbd>Alt</kbd>+<kbd>F</kbd>: to Persian · <kbd>Shift</kbd>+<kbd>Alt</kbd>+<kbd>E</kbd>: to English
-- Works on the selection, or from the caret back to where the script changes. Built-in dictionaries decide word by word, so `hello sghl` becomes `hello سلام`.
+- Select any text (even Ctrl+A) and every mistyped word anywhere in it is fixed, including fully swapped bilingual text and colloquial Persian. With no selection it works from the caret back to where the script changes. Built-in dictionaries decide word by word, so `hello sghl` becomes `hello سلام`.
 - Reads the mapping from your installed layouts (Persian, Persian Standard, any English layout); restores your clipboard; switches the layout afterwards.
 - Everything is configurable from the tray icon → Settings (saved in `%AppData%\FaEnFix\settings.ini`).
