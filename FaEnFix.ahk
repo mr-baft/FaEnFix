@@ -4,6 +4,10 @@
 ;@Ahk2Exe-SetDescription FaEnFix - اصلاح متن تایپ‌شده با کیبورد اشتباه
 ;@Ahk2Exe-SetVersion 1.1.0
 ;@Ahk2Exe-SetMainIcon icon.ico
+;@Ahk2Exe-SetProductName FaEnFix
+;@Ahk2Exe-SetCompanyName Alireza Moghaddam
+;@Ahk2Exe-SetCopyright Copyright (c) 2026 Alireza Moghaddam
+;@Ahk2Exe-SetOrigFilename FaEnFix.exe
 ; FaEnFix: اصلاح متنی که با کیبورد اشتباه (فارسی/انگلیسی) تایپ شده — در همه برنامه‌ها
 
 ; تنظیمات در %AppData%\FaEnFix\settings.ini ذخیره می‌شوند (از منوی کنار ساعت ← تنظیمات)
@@ -37,12 +41,14 @@ LoadDicts()
 SetupTray()
 RegisterHotkeys()
 
-if (IniRead(IniFile, "app", "welcomed", "0") = "0") {
+Arg := A_Args.Length ? A_Args[1] : ""
+if (Arg = "/settings")
+    SetTimer ShowSettings, -200
+else if (Arg = "/welcome" || IniRead(IniFile, "app", "welcomed", "0") = "0") {
     IniWrite "1", IniFile, "app", "welcomed"
     SetTimer ShowWelcome, -500
-} else if (!A_Args.Length || A_Args[1] != "/silent")
-    TrayTip HotkeyLabel(Cfg.hk["auto"]) ": خودکار`n" HotkeyLabel(Cfg.hk["to_fa"]) ": فارسی`n"
-          . HotkeyLabel(Cfg.hk["to_en"]) ": English", "FaEnFix فعال شد"
+} else if (Arg != "/silent")
+    TrayTip "هر جا اشتباهی تایپ کردی، " HotkeyLabel(Cfg.hk["auto"]) " رو بزن.", "FaEnFix روشنه"
 
 ; ================= تنظیمات =================
 LoadConfig() {
@@ -70,7 +76,7 @@ RegisterHotkeys() {
     }
     HotIf()
     if (bad != "")
-        TrayTip "این شورتکات‌ها ثبت نشدند (شاید برنامه‌ی دیگری گرفته):" bad, "FaEnFix", "Iconx"
+        TrayTip "این کلیدها رو یه برنامه‌ی دیگه گرفته:" bad "`nاز تنظیمات یه ترکیب دیگه انتخاب کن.", "FaEnFix", "Iconx"
 }
 
 ; ================= اصلی =================
@@ -82,7 +88,7 @@ FixLayout(force, *) {
     KeyWait "Alt"
 
     if !PickLayouts(&fa, &en) {
-        Tip("کیبورد فارسی یا انگلیسی پیدا نشد")
+        Tip("کیبورد فارسی یا انگلیسی روی ویندوز پیدا نشد")
         return
     }
     m := BuildMaps(fa, en)
@@ -109,14 +115,14 @@ FixLayout(force, *) {
                 SwitchTo(Last.srcHkl)
             Last.result := ""
             if Cfg.notify
-                Tip("برگردانده شد")
+                Tip("↩ برگشت")
             return
         }
 
         if !SplitTail(text, &prefix, &seg, &toPersian, force) {
             Paste(text)
             if (force != "")
-                Tip(force = "fa" ? "متن انگلیسی برای تبدیل نیست" : "متن فارسی برای تبدیل نیست")
+                Tip(force = "fa" ? "متن انگلیسی‌ای برای تبدیل نیست" : "متن فارسی‌ای برای تبدیل نیست")
             return
         }
         newText := prefix . FixSegment(seg, toPersian, m, Cfg.useDict && !fromSel)
@@ -125,7 +131,7 @@ FixLayout(force, *) {
         if Cfg.switchLayout
             SwitchTo(toPersian ? fa : en)
         if Cfg.notify
-            Tip(toPersian ? "→ فارسی" : "→ English")
+            Tip(toPersian ? "فارسی ✓" : "English ✓")
     } finally {
         Sleep 400                      ; برنامه‌های کند (تلگرام، Slack، Teams) فرصت خواندن داشته باشند
         A_Clipboard := saved
@@ -373,17 +379,18 @@ SetStartup(on) {
 }
 
 SetupTray() {
-    A_IconTip := "FaEnFix`nCtrl+Shift+Space / Shift+Alt+F / Shift+Alt+E"
+    A_IconTip := "FaEnFix · " HotkeyLabel(Cfg.hk["auto"]) " = اصلاح متن"
     tm := A_TrayMenu
     tm.Delete()
-    tm.Add("تنظیمات…", ShowSettings)
-    tm.Add("راهنما", (*) => Run(HELP_URL))
+    tm.Add("تنظیمات", ShowSettings)
+    tm.Add("راهنمای کوتاه", (*) => ShowWelcome())
+    tm.Add("صفحه‌ی برنامه در GitHub", (*) => Run(HELP_URL))
     tm.Add()
     tm.Add("اجرا با روشن شدن ویندوز", ToggleStartup)
-    tm.Add("غیرفعال موقت", ToggleSuspend)
+    tm.Add("خاموش موقت", ToggleSuspend)
     tm.Add()
     tm.Add("خروج", (*) => ExitApp())
-    tm.Default := "تنظیمات…"
+    tm.Default := "تنظیمات"
     ; نسخه‌ی exe قابل‌حمل در اولین اجرا خودش را به اجرای خودکار اضافه می‌کند
     ; (نصب‌کننده این مقدار را از قبل می‌نویسد و انتخاب کاربر را نگه می‌دارد)
     if (A_IsCompiled && IniRead(IniFile, "app", "installed", "0") = "0") {
@@ -416,14 +423,104 @@ ToggleSuspend(name, *) {
         A_TrayMenu.Uncheck(name)
 }
 
-; اولین اجرا: معرفی کوتاه شورتکات‌ها
+; ============ ظاهر ============
+global UI := {bg: "FFFFFF", text: "1F1A1C", muted: "75686C", accent: "881337", soft: "FFF1F3"
+            , key: "F6F1F2", font: "Vazirmatn"}            ; تم زرشکی
+
+; فونت وزیرمتن فقط برای همین برنامه بارگذاری می‌شود (نصب در ویندوز لازم نیست)
+LoadFonts() {
+    static done := false
+    if done
+        return
+    done := true
+    if A_IsCompiled {
+        dir := AppDir "\fonts"
+        DirCreate dir
+        FileInstall "fonts\Vazirmatn-Regular.ttf", dir "\Vazirmatn-Regular.ttf", 1
+        FileInstall "fonts\Vazirmatn-Bold.ttf", dir "\Vazirmatn-Bold.ttf", 1
+    } else {
+        SplitPath A_LineFile, , &srcDir
+        dir := srcDir "\fonts"
+    }
+    Loop Files dir "\*.ttf"
+        DllCall("gdi32\AddFontResourceEx", "Str", A_LoopFileFullPath, "UInt", 0x10, "Ptr", 0)
+}
+
+NewWindow(title) {
+    LoadFonts()
+    g := Gui("-MinimizeBox -MaximizeBox +E0x400000", title)      ; راست‌به‌چپ
+    g.BackColor := UI.bg
+    g.MarginX := 28, g.MarginY := 22
+    g.SetFont("s10 c" UI.text, UI.font)
+    return g
+}
+
+; سرتیتر: آیکون + عنوان + زیرعنوان
+AddHeader(g, title, sub) {
+    try g.AddPicture("xm ym w44 h44", A_IsCompiled ? A_ScriptFullPath : A_ScriptDir "\icon.ico")
+    g.SetFont("s15 bold")
+    g.AddText("x+14 yp-4", title)
+    g.SetFont("s10 norm c" UI.muted)
+    g.AddText("xp y+0", sub)
+    g.SetFont("c" UI.text)
+}
+
+AddSection(g, title) {
+    g.SetFont("s10 bold c" UI.accent)
+    g.AddText("xm y+18", title)
+    g.SetFont("norm c" UI.text)
+}
+
+; «^+vk20» را به شکل دکمه‌های کیبورد نشان می‌دهد: [Ctrl] + [Shift] + [Space]
+AddKeys(g, hk, pos, size := 10) {
+    g.SetFont("s" size " bold c" UI.text, "Segoe UI")
+    first := true, ctrls := []
+    keys := StrSplit(HotkeyLabel(hk), "+")
+    Loop keys.Length {                 ; پنجره راست‌به‌چپ است: از آخر اضافه شود تا Ctrl سمت چپ بیاید
+        k := keys[keys.Length - A_Index + 1]
+        if !first {
+            g.SetFont("norm c" UI.muted)
+            ctrls.Push(g.AddText("x+4 yp hp 0x200", "+"))
+            g.SetFont("bold c" UI.text)
+        }
+        ctrls.Push(g.AddText((first ? pos : "x+4 yp") " Center 0x200 Border Background" UI.key " h" Round(size * 2.8), " " k " "))
+        first := false
+    }
+    g.SetFont("s10 norm c" UI.text, UI.font)
+    return ctrls
+}
+
+; دکمه‌ی تخت؛ primary = آبی
+AddFlatButton(g, opts, label, fn, primary := true) {
+    g.SetFont(primary ? "bold cFFFFFF" : "norm c" UI.text)
+    b := g.AddText("h36 " opts " Center 0x200 0x100 Background" (primary ? UI.accent : UI.key), label)
+    b.OnEvent("Click", fn)
+    g.SetFont("norm c" UI.text)
+    return b
+}
+
+; اولین اجرا: معرفی کوتاه
 ShowWelcome() {
-    MsgBox "FaEnFix فعال است و از این به بعد با روشن شدن ویندوز خودش اجرا می‌شود.`n`n"
-         . "اگر با کیبورد اشتباه تایپ کردی، این کلیدها را بزن:`n`n"
-         . "    " HotkeyLabel(Cfg.hk["auto"]) "  ←  تبدیل خودکار (دوباره بزنی، برمی‌گردد)`n"
-         . "    " HotkeyLabel(Cfg.hk["to_fa"]) "  ←  تبدیل به فارسی`n"
-         . "    " HotkeyLabel(Cfg.hk["to_en"]) "  ←  تبدیل به انگلیسی`n`n"
-         . "تنظیمات: روی آیکون FaEnFix کنار ساعت دوبار کلیک کن.", "به FaEnFix خوش آمدی", "Iconi 0x80000 0x100000"
+    g := NewWindow("FaEnFix")
+    AddHeader(g, "FaEnFix آماده است", "دیگه لازم نیست برای یه کیبورد اشتباه، کل جمله رو پاک کنی.")
+    g.AddText("xm y+26 w420", "هر جا یادت رفت زبان کیبورد رو عوض کنی، همین کلیدها رو بزن:")
+    AddKeys(g, Cfg.hk["auto"], "xm y+12", 13)
+
+    g.SetFont("s11 c" UI.muted, "Segoe UI")
+    g.AddText("xm y+18 w420 h44 0x200 Center Background" UI.soft, "sghl ofvd   ←   سلام خبری")
+    g.SetFont("s10 c" UI.text, UI.font)
+
+    rows := [[Cfg.hk["to_fa"], "فقط به فارسی"], [Cfg.hk["to_en"], "فقط به انگلیسی"]]
+    g.AddText("xm y+18 c" UI.muted, "اگه خواستی جهت تبدیل رو خودت انتخاب کنی:")
+    for r in rows {
+        AddKeys(g, r[1], "xm y+8", 9)
+        g.AddText("x+12 yp hp 0x200", r[2])
+    }
+    g.AddText("xm y+14 w420 c" UI.muted, "اشتباه شد؟ همون کلید اول رو دوباره بزن تا برگرده.")
+    g.AddText("xm y+4 w420 c" UI.muted, "برای تنظیمات، روی آیکون FaEnFix کنار ساعت دوبار کلیک کن.")
+    AddFlatButton(g, "xm y+22 w160", "فهمیدم", (*) => g.Destroy())
+    g.OnEvent("Escape", (*) => g.Destroy())
+    g.Show("AutoSize Center")
 }
 
 ; ============ پنجره‌ی تنظیمات ============
@@ -434,29 +531,43 @@ ShowSettings(*) {
         SettingsGui.Show()
         return
     }
-    g := SettingsGui := Gui("+E0x400000", "تنظیمات FaEnFix")      ; راست‌به‌چپ
-    g.SetFont("s10", "Segoe UI")
-    g.AddText("w420", "شورتکات‌ها: روی «ضبط» بزن و کلید جدید را فشار بده.`nبرای خالی کردن Backspace و برای لغو Esc را بزن.")
-    rows := [["auto", "تبدیل خودکار"], ["auto2", "تبدیل خودکار (دوم)"], ["to_fa", "تبدیل به فارسی"], ["to_en", "تبدیل به انگلیسی"]]
+    g := SettingsGui := NewWindow("تنظیمات FaEnFix")
+    AddHeader(g, "تنظیمات", "هر طور راحتی، همون‌طور تنظیمش کن.")
+
+    AddSection(g, "کلیدهای میانبر")
+    g.SetFont("c" UI.muted)
+    g.AddText("xm y+2 w480", "روی «تغییر» بزن و ترکیب جدید رو فشار بده. Backspace خاموشش می‌کنه، Esc لغو.")
+    g.SetFont("c" UI.text)
+    rows := [["auto", "اصلاح خودکار"], ["auto2", "اصلاح خودکار (کلید دوم)"], ["to_fa", "فقط به فارسی"], ["to_en", "فقط به انگلیسی"]]
     hk := Map()
     for r in rows {
-        g.AddText("xm w140 h28 0x200 Section", r[2])
-        e := g.AddEdit("ys w180 ReadOnly", HotkeyLabel(Cfg.hk[r[1]]))
-        hk[r[1]] := {edit: e, value: Cfg.hk[r[1]]}
-        g.AddButton("ys w80", "ضبط").OnEvent("Click", RecordHotkey.Bind(hk[r[1]]))
+        g.AddText("xm y+8 w190 h32 0x200 Section", r[2])
+        g.SetFont("bold", "Segoe UI")
+        lbl := g.AddText("ys w200 h32 Center 0x200 Background" UI.key, KeysText(Cfg.hk[r[1]]))
+        g.SetFont("norm", UI.font)
+        hk[r[1]] := {label: lbl, value: Cfg.hk[r[1]]}
+        AddFlatButton(g, "ys w74 h32", "تغییر", RecordHotkey.Bind(hk[r[1]]), false)
     }
-    cbSwitch := g.AddCheckbox("xm y+16 Checked" Cfg.switchLayout, "بعد از اصلاح، زبان کیبورد هم عوض شود")
-    cbDict := g.AddCheckbox("xm Checked" Cfg.useDict, "با فرهنگ لغت فقط کلمه‌های غلط را تبدیل کن")
-    cbNotify := g.AddCheckbox("xm Checked" Cfg.notify, "بعد از هر تبدیل پیام کوچک نشان بده")
-    cbStart := g.AddCheckbox("xm Checked" StartupEnabled(), "اجرا با روشن شدن ویندوز")
-    g.AddText("xm y+16", "برنامه‌هایی که FaEnFix در آن‌ها کار نکند (نام فایل exe، هر خط یکی):")
-    ex := g.AddEdit("xm w420 r6", StrReplace(Cfg.exclude, ",", "`n"))
-    g.AddButton("xm w100 Default", "ذخیره").OnEvent("Click", Save)
-    g.AddButton("x+10 w100", "پیش‌فرض‌ها").OnEvent("Click", Reset)
-    g.AddButton("x+10 w100", "راهنما").OnEvent("Click", (*) => Run(HELP_URL))
+
+    AddSection(g, "رفتار برنامه")
+    cbSwitch := g.AddCheckbox("xm y+8 Checked" Cfg.switchLayout, "بعد از اصلاح، زبان کیبورد هم خودش عوض بشه")
+    cbDict := g.AddCheckbox("xm y+4 Checked" Cfg.useDict, "فقط کلمه‌های اشتباه عوض بشن (با فرهنگ لغت)")
+    cbNotify := g.AddCheckbox("xm y+4 Checked" Cfg.notify, "بعد از هر اصلاح، یه پیام کوچیک نشون بده")
+    cbStart := g.AddCheckbox("xm y+4 Checked" StartupEnabled(), "با روشن شدن ویندوز، خودش اجرا بشه")
+
+    AddSection(g, "برنامه‌هایی که FaEnFix توشون کار نکنه")
+    g.SetFont("c" UI.muted)
+    g.AddText("xm y+2 w480", "اسم فایل exe، هر خط یکی. مثلاً ترمینال‌ها، چون اونجا Ctrl+C یعنی توقف برنامه.")
+    g.SetFont("s9 c" UI.text, "Consolas")
+    ex := g.AddEdit("xm y+8 w480 r4 -E0x200 Border Background" UI.key, StrReplace(Cfg.exclude, ",", "`n"))
+    g.SetFont("s10", UI.font)
+
+    AddFlatButton(g, "xm y+20 w150", "ذخیره", Save)
+    AddFlatButton(g, "x+15 w150", "تنظیمات اولیه", Reset, false)
+    AddFlatButton(g, "x+15 w150", "راهنما", (*) => Run(HELP_URL), false)
     g.OnEvent("Close", CloseSettings)
     g.OnEvent("Escape", CloseSettings)
-    g.Show()
+    g.Show("AutoSize Center")
 
     Save(*) {
         for k, h in hk
@@ -488,7 +599,7 @@ CloseSettings(*) {
 
 ; کلید بعدی که زده شود را به‌صورت شورتکات (مثل ^+vk20) برمی‌گرداند
 RecordHotkey(h, *) {
-    h.edit.Value := "کلید جدید را بزن…"
+    h.label.Value := "کلید جدید رو بزن…"
     Suspend true                       ; تا شورتکات‌های فعلی اجرا نشوند
     res := {v: ""}
     ih := InputHook("L0 T8")
@@ -500,7 +611,7 @@ RecordHotkey(h, *) {
     Suspend false
     if (res.v != "" && res.v != "esc")
         h.value := res.v = "bs" ? "" : res.v
-    h.edit.Value := HotkeyLabel(h.value)
+    h.label.Value := KeysText(h.value)
 
     OnKey(ih, vk, sc) {
         if (vk = 0x1B)
@@ -515,6 +626,8 @@ RecordHotkey(h, *) {
         ih.Stop()
     }
 }
+
+KeysText(hk) => hk = "" ? "خاموش" : StrReplace(HotkeyLabel(hk), "+", "  +  ")
 
 ; «^+vk20» → «Ctrl+Shift+Space»
 HotkeyLabel(hk) {

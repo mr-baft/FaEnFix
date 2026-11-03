@@ -5,9 +5,9 @@ from PIL import Image, ImageDraw, ImageFont
 S = 256
 img = Image.new("RGBA", (S, S), (0, 0, 0, 0))
 d = ImageDraw.Draw(img)
-d.rounded_rectangle((8, 8, S - 8, S - 8), radius=56, fill=(37, 99, 235))
-d.rounded_rectangle((8, 8, S - 8, S // 2), radius=56, fill=(59, 130, 246))
-d.rectangle((8, S // 2 - 56, S - 8, S // 2), fill=(59, 130, 246))
+d.rounded_rectangle((8, 8, S - 8, S - 8), radius=56, fill=(136, 19, 55))
+d.rounded_rectangle((8, 8, S - 8, S // 2), radius=56, fill=(164, 28, 68))
+d.rectangle((8, S // 2 - 56, S - 8, S // 2), fill=(164, 28, 68))
 
 font = ImageFont.truetype("C:/Windows/Fonts/segoeuib.ttf", 112)
 d.text((S * 0.27, S * 0.50), "A", font=font, fill="white", anchor="mm")

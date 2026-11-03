@@ -28,6 +28,10 @@ UninstallDisplayName=FaEnFix
 Compression=lzma2/max
 SolidCompression=yes
 WizardStyle=modern
+WizardImageFile=wizard-164.bmp,wizard-328.bmp
+WizardSmallImageFile=wizard-small-55.bmp,wizard-small-110.bmp
+VersionInfoDescription=FaEnFix Setup
+VersionInfoCopyright=Copyright (c) 2026 Alireza Moghaddam
 CloseApplications=force
 RestartApplications=no
 

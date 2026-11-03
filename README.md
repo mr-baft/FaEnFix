@@ -15,6 +15,8 @@
 | سلام `lk ldo,hl` | سلام من میخوام |
 | اثممخ صخقمی | `hello world` |
 
+<p align="center"><img src="docs/welcome.png" width="440"></p>
+
 ---
 
 ## نصب (۳۰ ثانیه)
@@ -58,7 +60,7 @@
 
 روی آیکون FaEnFix کنار ساعت دوبار کلیک کن (یا راست‌کلیک ← **تنظیمات…**).
 
-<img src="docs/settings.png" width="420">
+<img src="docs/settings.png" width="470">
 
 - **شورتکات‌ها:** روی «ضبط» بزن و ترکیب کلید دلخواهت را فشار بده. <kbd>Backspace</kbd> شورتکات را خالی (غیرفعال) می‌کند و <kbd>Esc</kbd> لغو می‌کند.
 - **عوض کردن زبان کیبورد بعد از اصلاح**
@@ -123,7 +125,7 @@ git push origin v1.1.0
 
 ## مجوز
 
-کد تحت مجوز [MIT](LICENSE) است. فرهنگ لغت‌ها از [FrequencyWords](https://github.com/hermitdave/FrequencyWords) (بر پایه‌ی OpenSubtitles) گرفته شده‌اند و مجوز [CC-BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) دارند.
+کد تحت مجوز [MIT](LICENSE) است. فرهنگ لغت‌ها از [FrequencyWords](https://github.com/hermitdave/FrequencyWords) (بر پایه‌ی OpenSubtitles) گرفته شده‌اند و مجوز [CC-BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) دارند. فونت برنامه [وزیرمتن](https://github.com/rastikerdar/vazirmatn) است، با مجوز [OFL](fonts/OFL.txt).
 
 </div>
 
