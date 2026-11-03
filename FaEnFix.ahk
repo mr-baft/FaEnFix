@@ -379,7 +379,8 @@ FixMixed(text, m, force, &fixed, &endsFa) {
             if (nb = "" && j >= 1 && j <= toks.Length && !toks[j].weak && toks[j].sc != "")
                 nb := finalFa(toks[j]) ? "fa" : "en"
         w := SubStr(text, t.s, t.len)
-        if (nb = "en" && IsEnKeysOnly(w, m))
+        ; کلمه‌ی تک‌حرفی انگلیسی عملاً فقط I و a است؛ «,» بین دو کلمه‌ی انگلیسی در متن فارسی «و» است نه «U»
+        if (nb = "en" && IsEnKeysOnly(w, m) && RegExMatch(Transform(w, false, m), "^(I|a|A)$"))
             t.sc := "fa", t.c := 1             ; با کیبورد فارسی تایپ شده، به انگلیسی برگردد
         else if ((nb = "fa" || hasFa) && IsFaKeysOnly(w, m))
             t.c := 1
