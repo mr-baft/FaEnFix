@@ -8,6 +8,15 @@ if !PickLayouts(&faHkl, &enHkl) {
     FileAppend "no Persian/English layout`n", "*", "UTF-8"
     ExitApp 2
 }
+; آرگومان اختیاری: کیبورد فارسی مشخص، مثلاً 00000429 (فارسی قدیمی) یا 00050429 (فارسی استاندارد)
+if A_Args.Length {
+    faHkl := DllCall("LoadKeyboardLayout", "Str", A_Args[1], "UInt", 0x80, "Ptr")
+    FileAppend "Persian layout: " A_Args[1] " (" Format("0x{:X}", faHkl) ")`n", "*", "UTF-8"
+    if !faHkl
+        ExitApp 2
+} else {
+    FileAppend "Persian layout: " Format("0x{:X}", faHkl) " (default)`n", "*", "UTF-8"
+}
 M := BuildMaps(faHkl, enHkl)
 global Passed := 0, Failed := 0
 
@@ -28,6 +37,10 @@ Check(name, got, want) {
         FileAppend "FAIL | " name "`n   got: «" got "»`n   exp: «" want "»`n", "*", "UTF-8"
     }
 }
+
+; در بعضی کیبوردهای فارسی (مثل «فارسی» قدیمی) نیم‌فاصله کلید ساده ندارد و کسی که با کیبورد انگلیسی
+; تایپ کرده فاصله زده؛ پس وقتی کل متن اشتباه است، نیم‌فاصله و فاصله یکی حساب می‌شوند
+CheckLoose(name, got, want) => Check(name " (ZWNJ ~ space)", StrReplace(got, Chr(0x200C), " "), StrReplace(want, Chr(0x200C), " "))
 
 ; انتخاب (Ctrl+A): همه‌ی کلمه‌های اشتباه، هر جای متن
 Sel(text, force := "") {
@@ -67,7 +80,7 @@ Check("fa paragraph, 2 multi-word wrong runs", Sel(Spoil(faLong, ["از خواب
 ; ۵) یک جمله‌ی کامل اشتباه وسط متن
 Check("fa paragraph, whole middle sentence wrong", Sel(Spoil(faLong, ["با همکارانم درباره پروژه جدید صحبت کردیم و قرار شد تا آخر هفته گزارش کامل را آماده کنیم"], WrongFa)), faLong)
 ; ۶) کل پاراگراف اشتباه
-Check("fa paragraph, everything wrong", Sel(WrongFa(faLong)), faLong)
+CheckLoose("fa paragraph, everything wrong", Sel(WrongFa(faLong)), faLong)
 
 ; ۷ تا ۱۰) همین‌ها برای انگلیسی
 Check("en paragraph, 1 wrong word in middle", Sel(Spoil(enLong, ["colleagues"], WrongEn)), enLong)
@@ -98,7 +111,7 @@ Swap(text) {
 biLong := "امروز جلسه weekly review داشتیم و درباره release plan و deadline پروژه صحبت کردیم. "
         . "قرار شد feedback مشتری‌ها رو تا آخر هفته جمع کنیم و یه report کامل برای manager بفرستیم. "
         . "بعدش هم با team درباره design جدید و performance سایت حرف زدیم."
-Check("bilingual paragraph, every word swapped", Sel(Swap(biLong)), biLong)
+CheckLoose("bilingual paragraph, every word swapped", Sel(Swap(biLong)), biLong)
 biShort := "سلام، meeting فردا ساعت ده هست و لطفا laptop رو هم بیار"
 Check("bilingual sentence, every word swapped", Sel(Swap(biShort)), biShort)
 

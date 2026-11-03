@@ -34,9 +34,13 @@ jobs:
       - name: Unit tests
         shell: pwsh
         run: |
-          $p = Start-Process build/ahk/AutoHotkey64.exe -ArgumentList '/ErrorStdOut', 'tests/unit.ahk' -Wait -PassThru -NoNewWindow -RedirectStandardOutput unit.txt
-          Get-Content unit.txt -Encoding UTF8
-          if ($p.ExitCode -ne 0) { throw "unit tests failed ($($p.ExitCode))" }
+          # یک بار با کیبورد فارسی پیش‌فرض سرور («فارسی» قدیمی) و یک بار با «فارسی استاندارد»
+          foreach ($layout in @('', '00050429')) {
+            $a = @('/ErrorStdOut', 'tests/unit.ahk'); if ($layout) { $a += $layout }
+            $p = Start-Process build/ahk/AutoHotkey64.exe -ArgumentList $a -Wait -PassThru -NoNewWindow -RedirectStandardOutput unit.txt
+            Get-Content unit.txt -Encoding UTF8
+            if ($p.ExitCode -ne 0) { throw "unit tests failed ($($p.ExitCode))" }
+          }
 
       - name: Set version from tag
         if: startsWith(github.ref, 'refs/tags/v')

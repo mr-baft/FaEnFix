@@ -222,7 +222,8 @@ BuildMaps(fa, en) {
                 continue
             if (StrLen(e) = 1 && !toFa.Has(e))
                 toFa[e] := f
-            if (StrLen(f) = 1 && !toEn.Has(f))
+            ; اگر دو کلید یک حرف فارسی بدهند (کیبورد فارسی قدیمی)، حرف انگلیسی بر علامت مقدم است
+            if (StrLen(f) = 1 && (!toEn.Has(f) || (!IsEnChar(toEn[f]) && IsEnChar(e))))
                 toEn[f] := e
         }
     }
@@ -397,7 +398,8 @@ Classify(w, toPersian, m) {
         ; «]i» (= «چه») نباید به «i» کوتاه شود: علامتی که روی کیبورد فارسی حرف است جزو کلمه است
         t := TrimKeepFaKeys(w, m)
         own := Min(Rank(DictEn, StrLower(w)), Rank(DictEn, StrLower(t)))
-        oth := Min(Rank(DictFa, NormFa(Transform(w, true, m))), Rank(DictFa, NormFa(Transform(t, true, m))))
+        tf := Transform(t, true, m)        ; «sghlT» → «سلام،»: علامت فارسیِ چسبیده هم کنار برود
+        oth := Min(Rank(DictFa, NormFa(Transform(w, true, m))), Rank(DictFa, NormFa(tf)), Rank(DictFa, NormFa(Trim2(tf))))
     } else {
         own := Min(Rank(DictFa, NormFa(w)), Rank(DictFa, NormFa(t)))
         c := Transform(w, false, m)
