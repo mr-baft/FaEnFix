@@ -12,7 +12,7 @@
 
 ; تنظیمات در %AppData%\FaEnFix\settings.ini ذخیره می‌شوند (از منوی کنار ساعت ← تنظیمات)
 HELP_URL := "https://github.com/mr-baft/FaEnFix#readme"
-DEFAULT_HOTKEYS := Map("auto", "^+vk20", "auto2", "vk13", "to_fa", "+!vk46", "to_en", "+!vk45")
+DEFAULT_HOTKEYS := Map("auto", "+!vk20", "auto2", "vk13", "to_fa", "+!vk46", "to_en", "+!vk45")
 ; برنامه‌هایی که Ctrl+C در آن‌ها معنی دیگری دارد (ترمینال‌ها)
 DEFAULT_EXCLUDE := "WindowsTerminal.exe,cmd.exe,powershell.exe,pwsh.exe,mintty.exe,conhost.exe,"
                  . "alacritty.exe,wezterm-gui.exe,putty.exe,kitty.exe,Hyper.exe,Tabby.exe,"
@@ -675,7 +675,7 @@ AddSection(g, title) {
     g.SetFont("norm c" UI.text)
 }
 
-; «^+vk20» را به شکل دکمه‌های کیبورد نشان می‌دهد: [Ctrl] + [Shift] + [Space]
+; «+!vk20» را به شکل دکمه‌های کیبورد نشان می‌دهد: [Alt] + [Shift] + [Space]
 AddKeys(g, hk, pos, size := 10) {
     g.SetFont("s" size " bold c" UI.text, "Segoe UI")
     first := true, ctrls := []
@@ -827,7 +827,7 @@ CloseSettings(*) {
     SettingsGui := 0
 }
 
-; کلید بعدی که زده شود را به‌صورت شورتکات (مثل ^+vk20) برمی‌گرداند
+; کلید بعدی که زده شود را به‌صورت شورتکات (مثل +!vk20) برمی‌گرداند
 RecordHotkey(h, *) {
     h.label.Value := "کلید جدید رو بزن…"
     Suspend true                       ; تا شورتکات‌های فعلی اجرا نشوند
@@ -859,7 +859,7 @@ RecordHotkey(h, *) {
 
 KeysText(hk) => hk = "" ? "خاموش" : StrReplace(HotkeyLabel(hk), "+", "  +  ")
 
-; «^+vk20» → «Ctrl+Shift+Space»
+; «+!vk20» → «Alt+Shift+Space»
 HotkeyLabel(hk) {
     if (hk = "")
         return "(خالی)"

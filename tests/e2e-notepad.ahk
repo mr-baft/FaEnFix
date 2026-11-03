@@ -30,15 +30,24 @@ Spoil(text, words) {
 
 cases := [
     ; [متن تایپ‌شده, کلیدها, انتظار, توضیح]
-    [Spoil(faLong, ["صبح زود", "پروژه جدید صحبت کردیم", "گزارش"]), "^a|^+{Space}", faLong, "Ctrl+A on long paragraph, 3 wrong runs in middle"],
-    [Swap(bi), "^a|^+{Space}", bi, "Ctrl+A on fully swapped bilingual text"],
-    [WrongFa(faLong), "^a|^+{Space}", faLong, "Ctrl+A on whole wrong paragraph"],
-    ["سلام علی`nفردا " WrongFa("جلسه داریم") "`nلطفا " WrongFa("گزارش") " را بیاور", "^a|^+{Space}", "سلام علی`r`nفردا جلسه داریم`r`nلطفا گزارش را بیاور", "Ctrl+A on multi-line text"],
-    [Spoil(faLong, ["پروژه"]), "^a|^+{Space}|^+{Space}", Spoil(faLong, ["پروژه"]), "Ctrl+A fix, then press again = undo"],
+    [Spoil(faLong, ["صبح زود", "پروژه جدید صحبت کردیم", "گزارش"]), "^a|+!{Space}", faLong, "Ctrl+A on long paragraph, 3 wrong runs in middle"],
+    [Swap(bi), "^a|+!{Space}", bi, "Ctrl+A on fully swapped bilingual text"],
+    [WrongFa(faLong), "^a|+!{Space}", faLong, "Ctrl+A on whole wrong paragraph"],
+    ["سلام علی`nفردا " WrongFa("جلسه داریم") "`nلطفا " WrongFa("گزارش") " را بیاور", "^a|+!{Space}", "سلام علی`r`nفردا جلسه داریم`r`nلطفا گزارش را بیاور", "Ctrl+A on multi-line text"],
+    [Spoil(faLong, ["پروژه"]), "^a|+!{Space}|+!{Space}", Spoil(faLong, ["پروژه"]), "Ctrl+A fix, then press again = undo"],
     [Spoil(faLong, ["پروژه"]), "^a|+!f", faLong, "Ctrl+A then Shift+Alt+F"],
-    ["سلام " WrongFa("امروز کجا بودی"), "^+{Space}", "سلام امروز کجا بودی", "no selection: wrong tail after Persian"],
+    ["سلام " WrongFa("امروز کجا بودی"), "+!{Space}", "سلام امروز کجا بودی", "no selection: wrong tail after Persian"],
     ["hello " WrongFa("سلام خبری"), "{Pause}", "hello سلام خبری", "no selection: Pause key"],
+    ; بعد از اصلاح، زبان کیبورد باید روی زبان متن اصلاح‌شده بماند (تداخل نکردن با Alt+Shift ویندوز)
+    ["hello " WrongFa("سلام"), "+!{Space}", "hello سلام", "keyboard ends on Persian after Shift+Alt+Space", "fa"],
+    ["سلام " WrongEn("good"), "+!{Space}", "سلام good", "keyboard ends on English after Shift+Alt+Space", "en"],
 ]
+; زبان کیبورد پنجره‌ی Notepad
+NotepadLang() {
+    global pid
+    tid := DllCall("GetWindowThreadProcessId", "Ptr", WinExist("ahk_pid " pid), "Ptr", 0, "UInt")
+    return (DllCall("GetKeyboardLayout", "UInt", tid, "Ptr") & 0xFFFF) = 0x0429 ? "fa" : "en"
+}
 
 A_Clipboard := "CLIP-SENTINEL"
 pass := 0
@@ -83,6 +92,10 @@ for c in cases {
         Sleep 2000
     }
     ok := got == c[3] && A_Clipboard == "CLIP-SENTINEL"
+    if (ok && c.Length >= 5 && NotepadLang() != c[5]) {
+        ok := false
+        got .= "  [keyboard ended on " NotepadLang() "]"
+    }
     pass += ok
     FileAppend (ok ? "PASS" : "FAIL") " | " c[4] (ok ? "" : "`n   got: «" got "»`n   exp: «" c[3] "»`n   clipboard: «" SubStr(A_Clipboard, 1, 60) "»") "`n", "*", "UTF-8"
 }

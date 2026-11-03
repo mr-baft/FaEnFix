@@ -98,13 +98,13 @@ for t in terms {
     }
     Sleep 1000
     ; کلیدهای FaEnFix، هر کدام جدا
-    for k in ["^+{Space}", "+!f", "+!e"] {
+    for k in ["+!{Space}", "+!f", "+!e"] {
         SafeSend(hwnd, k)
         Sleep 1500
     }
     ok := PingAlive(marker)
     pass += ok
-    Log((ok ? "PASS" : "FAIL") " | " name ": running command " (ok ? "kept running" : "WAS STOPPED") " after Ctrl+Shift+Space, Shift+Alt+F, Shift+Alt+E")
+    Log((ok ? "PASS" : "FAIL") " | " name ": running command " (ok ? "kept running" : "WAS STOPPED") " after Shift+Alt+Space, Shift+Alt+F, Shift+Alt+E")
     KillPing(marker)
     Sleep 500
     try WinClose hwnd

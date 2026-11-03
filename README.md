@@ -40,7 +40,7 @@ FaEnFix هیچ اطلاعاتی به اینترنت نمی‌فرستد ([Privac
 
 | شورتکات | کار |
 |---|---|
-| <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Space</kbd> یا <kbd>Pause</kbd> | تبدیل خودکار: خودش جهت را تشخیص می‌دهد |
+| <kbd>Shift</kbd>+<kbd>Alt</kbd>+<kbd>Space</kbd> یا <kbd>Pause</kbd> | تبدیل خودکار: خودش جهت را تشخیص می‌دهد (مثل عوض کردن زبان ویندوز، فقط با Space) |
 | <kbd>Shift</kbd>+<kbd>Alt</kbd>+<kbd>F</kbd> | حتماً به **فارسی** |
 | <kbd>Shift</kbd>+<kbd>Alt</kbd>+<kbd>E</kbd> | حتماً به **انگلیسی** |
 | همان شورتکات خودکار، دوباره | برگرداندن آخرین تغییر |
@@ -77,7 +77,7 @@ FaEnFix هیچ اطلاعاتی به اینترنت نمی‌فرستد ([Privac
 
 ```ini
 [hotkeys]
-auto=^+vk20        ; Ctrl+Shift+Space   (^ = Ctrl, + = Shift, ! = Alt, # = Win)
+auto=+!vk20        ; Shift+Alt+Space   (^ = Ctrl, + = Shift, ! = Alt, # = Win)
 auto2=vk13         ; Pause
 to_fa=+!vk46       ; Shift+Alt+F
 to_en=+!vk45       ; Shift+Alt+E
@@ -141,7 +141,7 @@ git push origin v1.1.0
 
 **FaEnFix** fixes text typed with the wrong keyboard layout (Persian ⇄ English) in any Windows app. Download [**FaEnFix-Setup.exe**](../../releases/latest/download/FaEnFix-Setup.exe) and click Install — no admin rights needed. It starts right away and then runs silently in the background at every Windows startup. A portable `FaEnFix.exe` is also in [Releases](../../releases/latest).
 
-- <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Space</kbd> / <kbd>Pause</kbd>: auto-detect direction (press again to undo) · <kbd>Shift</kbd>+<kbd>Alt</kbd>+<kbd>F</kbd>: to Persian · <kbd>Shift</kbd>+<kbd>Alt</kbd>+<kbd>E</kbd>: to English
+- <kbd>Shift</kbd>+<kbd>Alt</kbd>+<kbd>Space</kbd> / <kbd>Pause</kbd>: auto-detect direction (press again to undo) · <kbd>Shift</kbd>+<kbd>Alt</kbd>+<kbd>F</kbd>: to Persian · <kbd>Shift</kbd>+<kbd>Alt</kbd>+<kbd>E</kbd>: to English
 - Select any text (even Ctrl+A) and every mistyped word anywhere in it is fixed, including fully swapped bilingual text and colloquial Persian. With no selection it works from the caret back to where the script changes. Built-in dictionaries decide word by word, so `hello sghl` becomes `hello سلام`.
 - Reads the mapping from your installed layouts (Persian, Persian Standard, any English layout); restores your clipboard; switches the layout afterwards.
 - Everything is configurable from the tray icon → Settings (saved in `%AppData%\FaEnFix\settings.ini`).
