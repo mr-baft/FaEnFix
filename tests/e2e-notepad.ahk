@@ -56,7 +56,11 @@ SafeSend(keys) {
     }
     Send keys
 }
-for c in cases {
+; کلید یا موسِ واقعی کاربر وسط یک حالت، نتیجه را خراب می‌کند؛ آن حالت دوباره اجرا می‌شود
+InstallKeybdHook
+InstallMouseHook
+RunCase(c) {
+    global pid
     A_Clipboard := "CLIP-SENTINEL"     ; کلیپ‌بورد بعد از هر اصلاح باید همین بماند
     ; متن مستقیم در Notepad گذاشته می‌شود (تایپ نمی‌شود) و مکان‌نما به آخرش می‌رود
     ControlSetText StrReplace(StrReplace(c[1], "`r`n", "`n"), "`n", "`r`n"), "Edit1", "ahk_pid " pid
@@ -67,7 +71,17 @@ for c in cases {
         SafeSend k
         Sleep(k = "^a" ? 300 : 1400)
     }
-    got := ControlGetText("Edit1", "ahk_pid " pid)
+    return ControlGetText("Edit1", "ahk_pid " pid)
+}
+for c in cases {
+    Loop 4 {
+        t0 := A_TickCount
+        got := RunCase(c)
+        if (A_TimeIdlePhysical >= A_TickCount - t0)
+            break
+        FileAppend "  (real keyboard/mouse input during «" c[4] "», running it again)`n", "*", "UTF-8"
+        Sleep 2000
+    }
     ok := got == c[3] && A_Clipboard == "CLIP-SENTINEL"
     pass += ok
     FileAppend (ok ? "PASS" : "FAIL") " | " c[4] (ok ? "" : "`n   got: «" got "»`n   exp: «" c[3] "»`n   clipboard: «" SubStr(A_Clipboard, 1, 60) "»") "`n", "*", "UTF-8"

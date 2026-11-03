@@ -63,6 +63,7 @@ terms := [
     ["cmd", "ahk_exe cmd.exe", 'cmd.exe /k ping -n 301 127.0.0.1', 301, ""],
     ["PowerShell", "ahk_exe powershell.exe", 'powershell.exe -NoExit -Command ping -n 302 127.0.0.1', 302, ""],
     ["Windows Terminal", "ahk_exe WindowsTerminal.exe", 'wt.exe -w new cmd /k ping -n 303 127.0.0.1', 303, ""],
+    ; VS Code جدا با پروفایل موقت (به VS Code خود کاربر دست نمی‌زند)؛ اگر VS Code در حال به‌روزرسانی باشد باز نمی‌شود
     ["VS Code terminal", "ahk_exe Code.exe", '"' code '" --user-data-dir "' vsData '" --extensions-dir "' scratch '\vscode-ext" --new-window "' scratch '\vscode-folder"', 304, "vscode"],
 ]
 
