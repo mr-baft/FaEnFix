@@ -84,6 +84,13 @@ begin
   end;
 end;
 
+// اگر در به‌روزرسانی تیک اجرای خودکار برداشته شد، مقدار قبلی هم پاک شود
+procedure CurStepChanged(CurStep: TSetupStep);
+begin
+  if (CurStep = ssPostInstall) and not WizardIsTaskSelected('autostart') then
+    RegDeleteValue(HKCU, 'Software\Microsoft\Windows\CurrentVersion\Run', 'FaEnFix');
+end;
+
 function PrepareToInstall(var NeedsRestart: Boolean): String;
 begin
   StopApp(False);
