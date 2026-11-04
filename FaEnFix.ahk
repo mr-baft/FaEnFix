@@ -37,6 +37,10 @@ global Last := {result: "", source: "", hwnd: 0, srcHkl: 0}
 global DictEn := Map(), DictFa := Map()
 ; با debug=1 در بخش [app] فایل تنظیمات، مراحل هر اصلاح در debug.log نوشته می‌شود
 global DebugOn := IniRead(IniFile, "app", "debug", "0") = "1"
+LogError(e, mode) {
+    try FileAppend FormatTime(, "yyyy-MM-dd HH:mm:ss") " " Type(e) ": " e.Message " | " e.What " (line " e.Line ")`n", AppDir "\error.log", "UTF-8"
+    return -1
+}
 DLog(s) {
     if DebugOn
         FileAppend FormatTime(, "HH:mm:ss") "." A_MSec " " s "`n", AppDir "\debug.log", "UTF-8"
@@ -46,6 +50,9 @@ if (A_IsCompiled || A_LineFile = A_ScriptFullPath)   ; وقتی تست‌ها ا
     Main()
 
 Main() {
+    Persistent
+    ; هر خطای پیش‌بینی‌نشده فقط ثبت می‌شود؛ برنامه نه پیام خطا نشان می‌دهد و نه بسته می‌شود
+    OnError(LogError)
     arg := A_Args.Length ? A_Args[1] : ""
     if (arg = "/admin-on" || arg = "/admin-off")
         SetAdminMode(arg = "/admin-on")
@@ -112,9 +119,11 @@ FixLayout(force, *) {
     saved := ClipboardAll()
     try {
         ; ۱) اگر متنی انتخاب شده، همان را اصلاح کن
-        DLog("--- " WinGetProcessName(hwnd) " | LineCopy=" (WinActive("ahk_group LineCopy") ? 1 : 0) " | force=" force)
+        if DebugOn
+            DLog("--- " (hwnd ? WinGetProcessName(hwnd) : "?") " | LineCopy=" (WinActive("ahk_group LineCopy") ? 1 : 0) " | force=" force)
         text := CopyText()
-        DLog("copy1: «" text "» formats: " ClipFormats())
+        if DebugOn
+            DLog("copy1: «" text "» formats: " ClipFormats())
         fromSel := true
         ; (VS Code و مشابه‌ها بدون انتخاب، کل خط را با Enter کپی می‌کنند)
         ; (Visual Studio و SSMS بدون Enter، ولی با یک نشانه در کلیپ‌بورد)
