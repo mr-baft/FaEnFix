@@ -295,6 +295,13 @@ SplitTail(text, &prefix, &seg, &toPersian, force := "") {
     ; اجبار جهت: «به فارسی» یعنی متن آخر باید انگلیسی باشد و برعکس
     if (script = "" || (force = "fa" && script != "en") || (force = "en" && script != "fa"))
         return false
+    ; کلمه‌ی آخر یک مسیر یا آدرس است (مثل D:\پروژه\sghl): کل مسیر، بخش‌به‌بخش بررسی شود
+    if RegExMatch(text, "(\S+)\s*$", &lt) && IsPathLike(lt[1]) {
+        prefix := SubStr(text, 1, lt.Pos - 1)
+        seg := SubStr(text, lt.Pos)
+        toPersian := (script = "en")
+        return true
+    }
     j := i
     while (j >= 1 && !(script = "fa" ? IsEnChar(chars[j]) : IsFaChar(chars[j])))
         j--
