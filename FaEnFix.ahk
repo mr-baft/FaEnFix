@@ -313,8 +313,23 @@ FixSegment(seg, toPersian, m, useDict) {
         return JoinMi(Transform(seg, toPersian, m), toPersian)
     toks := [], pos := 1
     while RegExMatch(seg, "\S+", &mt, pos) {
-        toks.Push({s: mt.Pos, len: mt.Len, c: Classify(mt[0], toPersian, m)})
+        path := IsPathLike(mt[0])
+        toks.Push({s: mt.Pos, len: mt.Len, path: path, c: path ? 0 : Classify(mt[0], toPersian, m)})
         pos := mt.Pos + mt.Len
+    }
+    ; مسیر و آدرس، بخش‌به‌بخش (بقیه‌ی کلمه‌ها تابع آن نمی‌شوند)
+    if HasPath(toks) {
+        out := "", pos := 1
+        for i, t in toks {
+            w := SubStr(seg, t.s, t.len)
+            if t.path
+                w := FixPath(w, m, toPersian ? "fa" : "en", &n, &lf, i = toks.Length)
+            else if (t.c = 1)
+                w := Transform(w, toPersian, m)
+            out .= SubStr(seg, pos, t.s - pos) . w
+            pos := t.s + t.len
+        }
+        return JoinMi(out . SubStr(seg, pos), toPersian)
     }
     ; کلمه‌ی ناشناخته (اسم، غلط تایپی) تابع کلمه‌ی شناخته‌شده‌ی بعدی است، وگرنه قبلی
     nxt := 0
@@ -344,6 +359,53 @@ FixSegment(seg, toPersian, m, useDict) {
     return JoinMi(out . SubStr(seg, pos), toPersian)
 }
 
+HasPath(toks) {
+    for t in toks
+        if t.path
+            return true
+    return false
+}
+
+; مسیر فایل یا آدرس اینترنتی (D:\a\b، github.com/x، https://…): هر بخش جدا بررسی می‌شود
+IsPathLike(w) => RegExMatch(w, "i)^([a-z]:[\\/]|\\\\|[a-z][a-z0-9+.-]*://|www\.|[\w-]+(\.[\w-]+)+[/?#]|[^\\/\s]*[\\/][^\\/\s]+[\\/])")
+
+; فقط بخش‌هایی از مسیر که با کیبورد اشتباه تایپ شده‌اند تبدیل می‌شوند (D:\projects\sghl → D:\projects\سلام)
+; n = تعداد بخش‌های تبدیل‌شده، lastFa = آخرین بخش (بعد از اصلاح) فارسی است
+; tailFallback: اگر هیچ بخشی قطعاً اشتباه نبود، بخش آخر تبدیل شود (کاربر بدون انتخاب کلید زده)
+FixPath(w, m, force, &n, &lastFa, tailFallback := false) {
+    parts := [], pos := 1
+    while RegExMatch(w, "[^\\/:?=&#.\s]+", &mt, pos) {
+        p := mt[0], nFa := 0, nEn := 0
+        Loop Parse p {
+            if IsFaChar(A_LoopField)
+                nFa++
+            else if IsEnChar(A_LoopField)
+                nEn++
+        }
+        sc := (nFa && !nEn) ? "fa" : (nEn && !nFa) ? "en" : ""
+        ; بخش تک‌حرفی (حرف درایو در D:\، پارامتر q در ?q=) قابل تشخیص نیست و دست نمی‌خورد
+        skip := sc = "" || StrLen(p) < 2 || (force = "fa" && sc != "en") || (force = "en" && sc != "fa")
+        parts.Push({s: mt.Pos, len: mt.Len, sc: sc, c: skip ? -1 : Classify(p, sc = "en", m)})
+        pos := mt.Pos + mt.Len
+    }
+    n := 0
+    for t in parts
+        n += t.c = 1
+    if (!n && tailFallback && parts.Length && parts[-1].c = 0)
+        parts[-1].c := 1, n := 1
+    out := "", pos := 1, lastFa := false
+    for t in parts {
+        p := SubStr(w, t.s, t.len)
+        if (t.c = 1)
+            p := Transform(p, t.sc = "en", m)
+        out .= SubStr(w, pos, t.s - pos) . p
+        pos := t.s + t.len
+        if (t.sc != "")
+            lastFa := (t.c = 1) ? (t.sc = "en") : (t.sc = "fa")
+    }
+    return out . SubStr(w, pos)
+}
+
 ; «می خوام» → «می‌خوام»: روی کیبورد انگلیسی Shift+Space فاصله‌ی معمولی است، نه نیم‌فاصله
 ; (فقط روی بخشی صدا زده می‌شود که از انگلیسی به فارسی تبدیل شده)
 JoinMi(s, toPersian := true) => toPersian ? RegExReplace(s, "(?<!\S)(ن?می) (?=[\x{0621}-\x{06CC}])", "$1" Chr(0x200C)) : s
@@ -368,7 +430,13 @@ FixMixed(text, m, force, &fixed, &endsFa) {
             sc := "en"
         ; «به فارسی» فقط کلمه‌های انگلیسی‌نما را عوض می‌کند و برعکس
         skip := sc = "" || (force = "fa" && sc != "en") || (force = "en" && sc != "fa")
-        toks.Push({s: mt.Pos, len: mt.Len, sc: sc, weak: weak, c: skip ? -1 : weak ? 0 : Classify(mt[0], sc = "en", m)})
+        ; مسیر و آدرس جدا (بخش‌به‌بخش) اصلاح می‌شوند و روی کلمه‌های کناری اثر نمی‌گذارند
+        if (!weak && IsPathLike(mt[0])) {
+            toks.Push({s: mt.Pos, len: mt.Len, sc: "", weak: false, path: true, c: -1})
+            pos := mt.Pos + mt.Len
+            continue
+        }
+        toks.Push({s: mt.Pos, len: mt.Len, sc: sc, weak: weak, path: false, c: skip ? -1 : weak ? 0 : Classify(mt[0], sc = "en", m)})
         pos := mt.Pos + mt.Len
     }
     ; کلمه‌ی ناشناخته (اسم، شکسته‌نویسی) تابع همسایه‌ی هم‌خطش است: اول بعدی، بعد قبلی
@@ -410,6 +478,13 @@ FixMixed(text, m, force, &fixed, &endsFa) {
     out := "", pos := 1, fixed := 0, endsFa := false, prevMi := false
     for t in toks {
         w := SubStr(text, t.s, t.len), gap := SubStr(text, pos, t.s - pos)
+        if t.path {
+            out .= gap . FixPath(w, m, force, &n, &lf)
+            pos := t.s + t.len, fixed += n, prevMi := false
+            if n
+                endsFa := lf
+            continue
+        }
         toFa := t.c = 1 && t.sc = "en"
         if (t.c = 1) {
             w := Transform(w, t.sc = "en", m)

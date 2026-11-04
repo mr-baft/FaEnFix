@@ -157,6 +157,18 @@ Check("caret: long correct line + 6 wrong words", Caret(faLong " " WrongFa("فر
 Check("caret: English then wrong Persian words", Caret("hello " WrongFa("سلام خبری")), "hello سلام خبری")
 Check("caret: wrong English at end of Persian", Caret("این متن " WrongEn("good morning")), "این متن good morning")
 
+; ---------- مسیر و آدرس: فقط بخش اشتباه ----------
+Check("caret: path with wrong Persian folder", Caret("D:\projects\" WrongFa("گزارش")), "D:\projects\گزارش")
+Check("caret: path with Persian folder then wrong one", Caret("D:\پروژه\" WrongFa("سلام")), "D:\پروژه\سلام")
+Check("caret: user folder path, wrong last part", Caret("C:\Users\A.Moqadam\Desktop\" WrongFa("خبری")), "C:\Users\A.Moqadam\Desktop\خبری")
+Check("caret: URL path, wrong last part", Caret("github.com/" WrongFa("سلام")), "github.com/سلام")
+Check("caret: search URL, wrong query", Caret("https://www.google.com/search?q=" WrongFa("قیمت")), "https://www.google.com/search?q=قیمت")
+Check("caret: command + path", Caret("cd D:\projects\" WrongFa("گزارش")), "cd D:\projects\گزارش")
+Check("caret: correct path left alone", Caret("D:\alireza-moghaddam\projects\FaEnFix"), "D:\alireza-moghaddam\projects\FaEnFix")
+Check("selection: path inside Persian sentence", Sel(WrongFa("فایل") " D:\projects\" WrongFa("گزارش") " " WrongFa("را باز کن")), "فایل D:\projects\گزارش را باز کن")
+Check("selection: URL in sentence untouched", Sel("لینک https://github.com/mr-baft/FaEnFix " WrongFa("رو ببین")), "لینک https://github.com/mr-baft/FaEnFix رو ببین")
+Check("selection: Persian-layout path part fixed", Sel("D:\projects\" WrongEn("report")), "D:\projects\report")
+
 ; ---------- سرعت ----------
 big := ""
 Loop 40
